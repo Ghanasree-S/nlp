@@ -515,10 +515,7 @@ VisualVerse/
 4. ✅ **Modern Tech Stack**: FastAPI + React + SpaCy + NetworkX
 5. ✅ **Cloud Deployment**: Production-ready on Render
 
-This project is suitable for:
-- 📚 Final year engineering project
-- 📝 Academic publication
-- 🎓 NLP course demonstration
+
 
 ---
 
@@ -527,4 +524,4 @@ This project is suitable for:
 
 ---
 
-*Report Generated: January 2026*
+
