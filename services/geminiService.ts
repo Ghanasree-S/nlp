@@ -65,8 +65,10 @@ export const generatePanelImage = async (prompt: string): Promise<string> => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
     <rect width="512" height="512" fill="${color}"/>
     <rect x="8" y="8" width="496" height="496" fill="none" stroke="white" stroke-width="4" rx="8"/>
-    <text x="256" y="220" fill="white" font-size="64" text-anchor="middle">🎨</text>
-    <text x="256" y="290" fill="white" font-size="20" text-anchor="middle" font-weight="bold">COMIC PANEL</text>
+    <text x="256" y="200" fill="white" font-size="48" text-anchor="middle" font-weight="bold">PANEL</text>
+    <text x="256" y="260" fill="white" font-size="16" text-anchor="middle" opacity="0.8">AI Generated Scene</text>
+    <text x="256" y="300" fill="white" font-size="12" text-anchor="middle" opacity="0.6">${prompt.slice(0, 40)}...</text>
   </svg>`;
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
+    // Use encodeURIComponent for safe encoding (works with all characters)
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`
 };
