@@ -63,6 +63,7 @@ const Navbar = ({ currentView, setView, theme, toggleTheme }: {
         {[
           { id: 'landing', label: 'Home' },
           { id: 'workspace', label: 'Studio' },
+          { id: 'nlp', label: 'NLP Pipeline' },
           { id: 'about', label: 'Paper & Theory' },
           { id: 'future', label: 'Roadmap' }
         ].map(item => (
@@ -844,43 +845,229 @@ export default function App() {
           </div>
         )}
 
-        {view === 'future' && (
-          <div className="max-w-5xl mx-auto px-6 py-20 animate-fade-in text-center">
-            <SectionTitle subtitle="Phase 2 development objectives and research extensions.">Roadmap: The Next Frontier</SectionTitle>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left mt-20">
-              {[
-                { title: 'Multilingual Ingest', desc: 'Real-time translation of source text before modality classification.', icon: <HelpCircle className="text-blue-500" /> },
-                { title: 'Voice Streaming', desc: 'Voice-to-comic generation using high-fidelity native audio models.', icon: <Zap className="text-yellow-500" /> },
-                { title: 'Custom Styles', desc: 'Anime, Pixar-style, and Technical Illustration model fine-tuning.', icon: <Palette className="text-purple-500" /> },
-                { title: 'Dynamic Graphs', desc: 'Force-directed knowledge graphs with real-time web grounding.', icon: <Network className="text-green-500" /> },
-                { title: 'Collaboration', desc: 'Multi-user workspace for shared knowledge map creation.', icon: <Monitor className="text-pink-500" /> },
-                { title: 'Export Engine', desc: 'Native export to SVG, PNG, PDF, and PowerPoint formats.', icon: <Download className="text-orange-500" /> }
-              ].map((item, i) => (
-                <div key={i} className="p-10 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/50 transition-colors group">
-                  <div className="mb-6 transform group-hover:scale-110 transition-transform">{item.icon}</div>
-                  <h4 className="text-xl font-black mb-3 dark:text-white uppercase tracking-tighter">{item.title}</h4>
-                  <p className="text-sm text-zinc-500 leading-relaxed">{item.desc}</p>
+        {view === 'nlp' && (
+          <div className="max-w-6xl mx-auto px-6 py-20 animate-fade-in space-y-16">
+            <SectionTitle subtitle="Understanding the NLP techniques and concepts used in VisualVerse">NLP Pipeline & Techniques</SectionTitle>
+
+            {/* Architecture Diagram */}
+            <section className="p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight text-center">System Architecture</h3>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="px-8 py-4 bg-indigo-500 text-white rounded-2xl font-bold text-center">
+                  USER INPUT (Text)
                 </div>
-              ))}
+                <div className="w-0.5 h-8 bg-indigo-300"></div>
+                <div className="grid grid-cols-4 gap-4 w-full max-w-3xl">
+                  {['Tokenize', 'POS Tag', 'NER', 'Dependency Parse'].map((step, i) => (
+                    <div key={i} className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-center text-sm font-semibold text-purple-700 dark:text-purple-300">
+                      {step}
+                    </div>
+                  ))}
+                </div>
+                <div className="w-0.5 h-8 bg-purple-300"></div>
+                <div className="px-8 py-4 bg-purple-500 text-white rounded-2xl font-bold">
+                  Text Classification (Narrative vs Informational)
+                </div>
+                <div className="flex items-center gap-8 mt-4">
+                  <div className="flex flex-col items-center">
+                    <div className="w-0.5 h-8 bg-pink-300"></div>
+                    <div className="px-6 py-3 bg-pink-500 text-white rounded-xl font-bold">Comic Generator</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-0.5 h-8 bg-cyan-300"></div>
+                    <div className="px-6 py-3 bg-cyan-500 text-white rounded-xl font-bold">MindMap Generator</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Unit-wise NLP Concepts */}
+            <section>
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight">NLP Concepts by Unit</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  {
+                    unit: 'Unit 1: Computational Linguistics',
+                    color: 'indigo',
+                    concepts: ['Tokenization - SpaCy tokenizer', 'Sentence Splitting - boundary detection', 'Morphology - Lemmatization', 'Syntax - Dependency parsing', 'Semantics - Word embeddings']
+                  },
+                  {
+                    unit: 'Unit 2: Word Representation',
+                    color: 'purple',
+                    concepts: ['TF-IDF - Keyphrase scoring', 'Word Embeddings - Topic clustering', 'Bag of Words - Classification features']
+                  },
+                  {
+                    unit: 'Unit 3: Deep Learning',
+                    color: 'pink',
+                    concepts: ['LSTM - Text classification', 'BERT/Transformers - KeyBERT extraction', 'Attention - Sentence importance']
+                  },
+                  {
+                    unit: 'Unit 4: NLP Applications',
+                    color: 'cyan',
+                    concepts: ['NER - Character/Location extraction', 'POS Tagging - Noun/Verb identification', 'Dependency Parsing - Relation extraction', 'Topic Modeling - LDA clustering']
+                  }
+                ].map((unit, i) => (
+                  <div key={i} className={`p-8 rounded-[2rem] bg-${unit.color}-50 dark:bg-${unit.color}-900/20 border border-${unit.color}-200 dark:border-${unit.color}-800`}>
+                    <h4 className={`text-sm font-black uppercase tracking-widest text-${unit.color}-600 dark:text-${unit.color}-400 mb-4`}>{unit.unit}</h4>
+                    <ul className="space-y-2">
+                      {unit.concepts.map((concept, j) => (
+                        <li key={j} className="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                          <CheckCircle2 size={14} className={`text-${unit.color}-500`} /> {concept}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Pipeline Stages */}
+            <section>
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight">Pipeline Stages</h3>
+              <div className="space-y-4">
+                {[
+                  { stage: '1. Preprocessing', desc: 'Text is tokenized, POS tagged, and parsed for dependencies using SpaCy', file: 'nlp/preprocessing/preprocessor.py' },
+                  { stage: '2. Classification', desc: 'LSTM classifier determines if text is narrative (story) or informational (concept)', file: 'nlp/classification/lstm_classifier.py' },
+                  { stage: '3. Keyphrase Extraction', desc: 'NER, noun chunks, and dependency-based extraction identify key terms', file: 'nlp/keyphrase/keyphrase_extractor.py' },
+                  { stage: '4. Topic Modeling', desc: 'LDA and semantic clustering group related concepts into categories', file: 'nlp/topic_model/topic_modeler.py' },
+                  { stage: '5. Relation Extraction', desc: 'Subject-Verb-Object patterns extracted from dependency parse', file: 'nlp/relation/relation_extractor.py' },
+                  { stage: '6. Graph Construction', desc: 'NetworkX builds hierarchical 3-level graph structure', file: 'mindmap_gen/mindmap_generator.py' }
+                ].map((item, i) => (
+                  <div key={i} className="p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center gap-6">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-black text-lg">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold dark:text-white">{item.stage}</h4>
+                      <p className="text-sm text-zinc-500">{item.desc}</p>
+                    </div>
+                    <code className="text-xs bg-zinc-200 dark:bg-zinc-800 px-3 py-1 rounded-lg text-zinc-600 dark:text-zinc-400">{item.file}</code>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Libraries Used */}
+            <section className="p-8 rounded-[2rem] bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+              <h3 className="text-2xl font-black mb-6 uppercase tracking-tight">NLP Libraries Used</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {['SpaCy', 'NLTK', 'Transformers', 'KeyBERT', 'Gensim', 'scikit-learn', 'NetworkX', 'PyVis'].map((lib, i) => (
+                  <div key={i} className="p-4 bg-white/10 rounded-xl text-center font-semibold backdrop-blur-sm">
+                    {lib}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {view === 'future' && (
+          <div className="max-w-5xl mx-auto px-6 py-20 animate-fade-in">
+            <SectionTitle subtitle="What we've accomplished and what's next for VisualVerse">Project Roadmap</SectionTitle>
+
+            {/* Completed Features */}
+            <div className="mb-16">
+              <h3 className="text-xl font-black uppercase tracking-tight text-green-500 mb-6 flex items-center gap-2">
+                <CheckCircle2 size={24} /> Completed Features
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  'Dual-mode text classification',
+                  'NLP preprocessing pipeline',
+                  'Keyphrase extraction (KeyBERT)',
+                  'Topic modeling (LDA)',
+                  'Dynamic mind-map generation',
+                  'Hierarchical 3-level layout',
+                  'Comic panel extraction',
+                  'React frontend with dark mode',
+                  'FastAPI backend',
+                  'Cloud deployment (Render)',
+                  'SpaCy NER & POS tagging',
+                  'Dependency parsing'
+                ].map((item, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-center gap-3">
+                    <CheckCircle2 size={18} className="text-green-500" />
+                    <span className="text-sm font-medium text-green-700 dark:text-green-300">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Future Enhancements */}
+            <div>
+              <h3 className="text-xl font-black uppercase tracking-tight text-indigo-500 mb-6 flex items-center gap-2">
+                <Zap size={24} /> Future Enhancements
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { title: 'Multilingual Support', desc: 'Hindi, Tamil, and other Indian language support', icon: <HelpCircle className="text-blue-500" /> },
+                  { title: 'Voice Input', desc: 'Speech-to-text for voice-based input', icon: <Zap className="text-yellow-500" /> },
+                  { title: 'Custom Comic Styles', desc: 'Anime, realistic, Marvel-style options', icon: <Palette className="text-purple-500" /> },
+                  { title: 'Real Image Generation', desc: 'Stable Diffusion for actual comic panels', icon: <ImageIcon className="text-pink-500" /> },
+                  { title: 'PDF Export', desc: 'Export comics and mind-maps as PDF', icon: <Download className="text-orange-500" /> },
+                  { title: 'Collaborative Editing', desc: 'Multi-user mind-map creation', icon: <Monitor className="text-cyan-500" /> }
+                ].map((item, i) => (
+                  <div key={i} className="p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/50 transition-colors group">
+                    <div className="mb-4 transform group-hover:scale-110 transition-transform">{item.icon}</div>
+                    <h4 className="text-lg font-black mb-2 dark:text-white">{item.title}</h4>
+                    <p className="text-sm text-zinc-500">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </main>
 
       <footer className="py-20 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="flex flex-col gap-2">
-            <Logo />
-            <p className="text-xs text-zinc-500 max-w-sm ml-1">
-              Academic Thesis Project: Experimental Text-to-Visual Generation Pipeline.
-              Built for engineering evaluation and research validation.
-            </p>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-12 mb-12">
+            <div className="flex flex-col gap-4">
+              <Logo />
+              <p className="text-sm text-zinc-500 max-w-md">
+                VisualVerse is a dual-mode NLP system that transforms text into comics and mind-maps.
+                Built as a 6th semester NLP project demonstrating advanced text processing.
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-zinc-400">By Ghanasree S</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-xs text-zinc-400">January 2026</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">Datasets Used</h4>
+                <ul className="space-y-2 text-sm text-zinc-500">
+                  <li>ROCStories (100K+ stories)</li>
+                  <li>WikiHow (Instructional)</li>
+                  <li>BBC News (Topic classification)</li>
+                  <li>COCO Captions</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">Tech Stack</h4>
+                <ul className="space-y-2 text-sm text-zinc-500">
+                  <li>FastAPI + Python</li>
+                  <li>SpaCy + NLTK</li>
+                  <li>React + TypeScript</li>
+                  <li>NetworkX + KeyBERT</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">Links</h4>
+                <ul className="space-y-2">
+                  <li><a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" className="text-sm text-zinc-500 hover:text-indigo-500 flex items-center gap-2"><Github size={16} /> GitHub Repo</a></li>
+                  <li><button onClick={() => setView('about')} className="text-sm text-zinc-500 hover:text-indigo-500">Documentation</button></li>
+                  <li><button onClick={() => setView('nlp')} className="text-sm text-zinc-500 hover:text-indigo-500">NLP Pipeline</button></li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-8">
-            <a href="#" className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-indigo-500">Documentation</a>
-            <a href="#" className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-indigo-500">Datasets</a>
-            <a href="#" className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-indigo-500">Technical Spec</a>
-            <a href="#" className="text-zinc-400 hover:text-indigo-500 transition-colors"><Github size={24} /></a>
+          <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-zinc-400">© 2026 VisualVerse. Academic Project for NLP Course.</p>
+            <a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-indigo-500">
+              <Github size={16} /> View on GitHub
+            </a>
           </div>
         </div>
       </footer>
