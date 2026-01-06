@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-export type AppView = 'landing' | 'workspace' | 'about' | 'future' | 'results';
+export type AppView = 'landing' | 'workspace' | 'about' | 'future' | 'results' | 'nlp';
 
 export type OutputMode = 'comic' | 'mindmap';
 
