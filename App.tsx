@@ -785,60 +785,197 @@ export default function App() {
         {view === 'results' && <ResultsPage status={status} result={result} panels={panels} onReset={() => setView('workspace')} />}
 
         {view === 'about' && (
-          <div className="max-w-5xl mx-auto px-6 py-20 animate-fade-in space-y-24">
-            <header>
-              <SectionTitle subtitle="A dual-mode NLP system for converting unstructured text into structured visual artifacts.">Research Abstract: VisualVerse</SectionTitle>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
-                <div>
-                  <h3 className="text-sm font-black uppercase text-indigo-500 mb-4 tracking-widest">Problem Statement</h3>
-                  <p className="text-zinc-500 leading-relaxed text-lg">
-                    Textual information is often difficult for learners to process, especially in narrative or conceptual forms. Most text-processing tools only summarize or highlight content. There is a need for a system that automatically translates text into highly visual formats to improve comprehension, engagement, and creativity.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-black uppercase text-indigo-500 mb-4 tracking-widest">The Proposed Solution</h3>
-                  <p className="text-zinc-500 leading-relaxed text-lg">
-                    VisuText (codenamed VisualVerse) is a dual-mode visual transformation system. If a text is detected as a story, it generates comic panels. If it is informational, it generates an interactive mind-map. NLP handles understanding and extraction, while Generative AI handles visual synthesis.
-                  </p>
-                </div>
+          <div className="max-w-6xl mx-auto px-6 py-20 animate-fade-in space-y-16">
+            {/* Abstract Header */}
+            <header className="text-center">
+              <h1 className="text-4xl md:text-5xl font-black mb-6 dark:text-white tracking-tight">
+                VisualVerse: A Dual-Mode NLP System
+              </h1>
+              <p className="text-xl text-indigo-500 font-semibold mb-8">
+                Converting Text into Comics and Mind-Maps
+              </p>
+              <div className="max-w-3xl mx-auto">
+                <p className="text-zinc-500 dark:text-zinc-400 text-lg leading-relaxed">
+                  Textual information is often difficult for learners to process, especially in narrative or conceptual forms.
+                  VisualVerse is an intelligent text-visualization system that transforms any given text into
+                  <strong className="text-indigo-500"> comic strips</strong> (for stories) or
+                  <strong className="text-indigo-500"> mind-maps</strong> (for explanatory/content-based text).
+                  The system uses state-of-the-art Natural Language Processing (NLP) models for story segmentation,
+                  scene understanding, keyphrase extraction, topic modeling, and relationship mapping.
+                </p>
               </div>
             </header>
 
+            {/* Problem & Solution */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="p-8 rounded-[2rem] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <h3 className="text-sm font-black uppercase text-red-500 mb-4 tracking-widest">Problem Statement</h3>
+                <ul className="space-y-3 text-zinc-600 dark:text-zinc-400">
+                  <li className="flex items-start gap-2"><span className="text-red-500">•</span> Most text-processing tools only summarize or highlight content</li>
+                  <li className="flex items-start gap-2"><span className="text-red-500">•</span> No existing system converts text into two highly visual formats</li>
+                  <li className="flex items-start gap-2"><span className="text-red-500">•</span> Learners struggle with long paragraphs and abstract ideas</li>
+                  <li className="flex items-start gap-2"><span className="text-red-500">•</span> Dense stories and concepts need visual representation</li>
+                </ul>
+              </div>
+              <div className="p-8 rounded-[2rem] bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                <h3 className="text-sm font-black uppercase text-green-500 mb-4 tracking-widest">Proposed Solution</h3>
+                <ul className="space-y-3 text-zinc-600 dark:text-zinc-400">
+                  <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-500 mt-1" /> Dual-mode visual text transformation system</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-500 mt-1" /> Story text → Generates comic panels</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-500 mt-1" /> Informational text → Generates mind-map</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-500 mt-1" /> NLP handles understanding & extraction</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Objectives */}
             <section>
-              <h3 className="text-3xl font-black mb-12 uppercase tracking-tight">System Architecture</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight text-center">Project Objectives</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-6 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                  <h4 className="font-black text-indigo-600 dark:text-indigo-400 mb-4">Primary Objectives</h4>
+                  <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-indigo-500" /> Build NLP-driven system for text → visual conversion</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-indigo-500" /> Automate story segmentation & panel creation</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-indigo-500" /> Automate keyphrase extraction & graph construction</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-indigo-500" /> Provide user-friendly interface for input & output</li>
+                  </ul>
+                </div>
+                <div className="p-6 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                  <h4 className="font-black text-purple-600 dark:text-purple-400 mb-4">Secondary Objectives</h4>
+                  <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-purple-500" /> Support multimodal learning & visual understanding</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-purple-500" /> Aid students in simplifying large content</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-purple-500" /> Create foundational model for research expansion</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Where NLP is Used */}
+            <section className="p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight text-center">Where NLP is Used</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
-                  { label: 'Preprocessing', icon: <FileText />, desc: 'Tokenization, POS tagging, and Dependency parsing.' },
-                  { label: 'Classification', icon: <Layers />, desc: 'Narrative vs Informational routing logic.' },
-                  { label: 'Extraction', icon: <Search />, desc: 'NER and Keyphrase extraction modules.' },
-                  { label: 'Synthesis', icon: <Monitor />, desc: 'Stable Diffusion and NetworkX renderers.' }
+                  { title: 'Text Understanding', items: ['Tokenization', 'Sentence splitting', 'Paragraph segmentation'] },
+                  { title: 'Key Extraction', items: ['Named Entity Recognition', 'Keyphrase extraction', 'Event identification'] },
+                  { title: 'Relationship Modeling', items: ['Character interactions', 'Concept relationships', 'Mind-map edges'] },
+                  { title: 'Scene Generation', items: ['Story segment analysis', 'Scene description', 'Image prompts'] },
+                  { title: 'Conditional Routing', items: ['Text classification', 'Narrative detection', 'Mode selection'] }
                 ].map((block, i) => (
-                  <div key={i} className="p-8 rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-6 text-indigo-500">
-                      {block.icon}
-                    </div>
-                    <div className="font-bold mb-2 uppercase text-xs tracking-widest">{block.label}</div>
-                    <p className="text-xs text-zinc-500">{block.desc}</p>
+                  <div key={i} className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                    <h4 className="font-bold text-sm text-indigo-500 mb-3">{block.title}</h4>
+                    <ul className="space-y-1">
+                      {block.items.map((item, j) => (
+                        <li key={j} className="text-xs text-zinc-500">{item}</li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="p-12 rounded-[3rem] bg-indigo-600 text-white flex flex-col md:flex-row items-center justify-between gap-12">
-              <div className="max-w-xl">
-                <h3 className="text-4xl font-black mb-6 uppercase leading-tight tracking-tighter">Novelty & Academic Value</h3>
-                <p className="text-indigo-100 text-lg">
-                  VisualVerse represents a first-of-this-kind dual-mode system that bridges the gap between text comprehension and visual learning. By utilizing State-of-the-art NLP (Gemini) and Generative Image Models, it offers a scalable framework for educational technology.
-                </p>
+            {/* System Architecture */}
+            <section>
+              <h3 className="text-2xl font-black mb-8 uppercase tracking-tight text-center">System Architecture</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                  { label: '1. Preprocessing', icon: <FileText />, desc: 'Tokenization, POS tagging, Dependency parsing via SpaCy' },
+                  { label: '2. Classification', icon: <Layers />, desc: 'LSTM-based Narrative vs Informational routing' },
+                  { label: '3. Extraction', icon: <Search />, desc: 'NER, KeyBERT, and relation extraction modules' },
+                  { label: '4. Synthesis', icon: <Monitor />, desc: 'NetworkX graphs and comic panel generation' }
+                ].map((block, i) => (
+                  <div key={i} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-center">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
+                      {block.icon}
+                    </div>
+                    <div className="font-bold mb-2 text-sm">{block.label}</div>
+                    <p className="text-xs text-white/80">{block.desc}</p>
+                  </div>
+                ))}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 bg-white/10 rounded-2xl backdrop-blur-md">
-                  <div className="text-3xl font-black">98%</div>
-                  <div className="text-[10px] uppercase font-bold tracking-widest opacity-60">Accuracy</div>
+            </section>
+
+            {/* Tech Stack & Datasets */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="p-8 rounded-[2rem] bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
+                <h3 className="text-lg font-black uppercase text-cyan-600 dark:text-cyan-400 mb-6">Tech Stack</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-400 mb-2">Backend</h4>
+                    <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                      <li>• Python 3.11</li>
+                      <li>• FastAPI</li>
+                      <li>• Uvicorn</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-400 mb-2">NLP</h4>
+                    <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                      <li>• SpaCy</li>
+                      <li>• KeyBERT</li>
+                      <li>• Transformers</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-400 mb-2">Frontend</h4>
+                    <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                      <li>• React</li>
+                      <li>• TypeScript</li>
+                      <li>• Vite</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-400 mb-2">Visualization</h4>
+                    <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                      <li>• NetworkX</li>
+                      <li>• PyVis</li>
+                      <li>• SVG</li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="p-6 bg-white/10 rounded-2xl backdrop-blur-md">
-                  <div className="text-3xl font-black">2.5s</div>
-                  <div className="text-[10px] uppercase font-bold tracking-widest opacity-60">Avg Processing</div>
+              </div>
+              <div className="p-8 rounded-[2rem] bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                <h3 className="text-lg font-black uppercase text-orange-600 dark:text-orange-400 mb-6">Datasets Used</h3>
+                <div className="space-y-3">
+                  {[
+                    { name: 'ROCStories', desc: '100K+ 5-sentence stories for story understanding' },
+                    { name: 'WikiHow', desc: 'Instructional articles for hierarchical extraction' },
+                    { name: 'BBC News', desc: 'Topic-classified news for keyphrase extraction' },
+                    { name: 'COCO Captions', desc: 'Image-text pairs for scene generation' }
+                  ].map((ds, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-orange-500 mt-2"></div>
+                      <div>
+                        <span className="font-semibold text-sm text-zinc-700 dark:text-zinc-300">{ds.name}</span>
+                        <p className="text-xs text-zinc-500">{ds.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Use Cases & Novelty */}
+            <section className="p-8 rounded-[3rem] bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div>
+                  <h3 className="text-2xl font-black mb-6 uppercase">Use Cases</h3>
+                  <ul className="space-y-3 text-indigo-100">
+                    <li className="flex items-center gap-3"><BookOpen size={18} /> Education - Visual learning & notes</li>
+                    <li className="flex items-center gap-3"><Sparkles size={18} /> Storytelling & creative writing</li>
+                    <li className="flex items-center gap-3"><Eye size={18} /> Children learning tools</li>
+                    <li className="flex items-center gap-3"><FileText size={18} /> Visual summaries for students</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black mb-6 uppercase">Novelty & Innovation</h3>
+                  <ul className="space-y-3 text-indigo-100">
+                    <li className="flex items-center gap-3"><CheckCircle2 size={18} /> First-of-its-kind dual-mode NLP system</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 size={18} /> Multiple AI models: NLP + Graph Theory</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 size={18} /> Visual outputs from pure text</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 size={18} /> Strong academic & publication potential</li>
+                  </ul>
                 </div>
               </div>
             </section>
