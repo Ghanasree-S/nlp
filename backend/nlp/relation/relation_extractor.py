@@ -91,9 +91,17 @@ class RelationExtractor:
     
     def extract(self, preprocessed: Dict[str, Any], 
                 keyphrases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract relations between keyphrases"""
+        """
+        Extract relations between keyphrases
+        
+        Uses from preprocessed:
+        - dependencies: Dependency parse (child, dep, head)
+        - sentences: For context finding
+        - original_text: For pattern matching
+        """
         text = preprocessed.get("original_text", "")
         sentences = preprocessed.get("sentences", [])
+        dependencies = preprocessed.get("dependencies", [])
         
         if len(keyphrases) < 2:
             return []
@@ -101,12 +109,13 @@ class RelationExtractor:
         keyphrase_texts = [kp["phrase"] for kp in keyphrases]
         
         if self._trained and self.model is not None:
-            return self._extract_with_model(text, sentences, keyphrase_texts)
-        return self._extract_pattern_based(text, sentences, keyphrase_texts)
+            return self._extract_with_model(text, sentences, dependencies, keyphrase_texts)
+        return self._extract_pattern_based(text, sentences, dependencies, keyphrase_texts)
     
     def _extract_with_model(self, text: str, sentences: List[str], 
+                           dependencies: List[Dict],
                            keyphrases: List[str]) -> List[Dict[str, Any]]:
-        """Extract using trained model"""
+        """Extract using trained model with dependency features"""
         relations = []
         
         for i, kp1 in enumerate(keyphrases):
@@ -150,10 +159,40 @@ class RelationExtractor:
         return None
     
     def _extract_pattern_based(self, text: str, sentences: List[str], 
+                               dependencies: List[Dict],
                                keyphrases: List[str]) -> List[Dict[str, Any]]:
-        """Pattern-based extraction fallback"""
+        """Pattern-based extraction using dependency paths"""
         relations = []
         text_lower = text.lower()
+        
+        # Use dependency parse to find relations
+        for dep in dependencies:
+            child = dep.get("child", "").lower()
+            head = dep.get("head", "").lower()
+            dep_type = dep.get("dep", "")
+            
+            # Check if both are keyphrases
+            child_kp = next((kp for kp in keyphrases if kp.lower() == child), None)
+            head_kp = next((kp for kp in keyphrases if kp.lower() == head), None)
+            
+            if child_kp and head_kp:
+                # Infer relation from dependency type
+                if dep_type in ['nsubj', 'nsubjpass']:
+                    rel_type = "CAUSES" if dep.get("head_pos") == "VERB" else "RELATES_TO"
+                elif dep_type in ['dobj', 'pobj']:
+                    rel_type = "REQUIRES"
+                elif dep_type == 'attr':
+                    rel_type = "IS_A"
+                else:
+                    rel_type = "RELATES_TO"
+                
+                relations.append({
+                    "source": child_kp,
+                    "target": head_kp,
+                    "relation": rel_type,
+                    "confidence": 0.7,
+                    "source_type": "DEPENDENCY"
+                })
         
         for i, kp1 in enumerate(keyphrases):
             for j, kp2 in enumerate(keyphrases):

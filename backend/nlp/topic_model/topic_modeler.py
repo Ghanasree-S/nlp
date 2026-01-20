@@ -95,6 +95,11 @@ class TopicModeler:
         """
         Extract and cluster topics from text
         
+        Uses from preprocessed:
+        - lemmas: Base word forms (stopwords removed)
+        - sentences: For topic distribution
+        - original_text: For context
+        
         Returns:
             Dict with:
             - topics: List of topic dicts with words and relevance
@@ -104,14 +109,27 @@ class TopicModeler:
         text = preprocessed.get("original_text", "")
         sentences = preprocessed.get("sentences", [])
         
-        if self._trained and self.lda_model is not None:
-            return self._model_with_trained(text, sentences, keyphrases)
+        # Use lemmas from preprocessing (filtered, stopwords removed)
+        lemmas = preprocessed.get("lemmas", [])
         
-        return self._model_statistical(text, sentences, keyphrases)
+        # If no lemmas available, create from text
+        if not lemmas and text:
+            # Fallback: simple tokenization
+            import re
+            words = re.findall(r'\b[a-z]{3,}\b', text.lower())
+            stopwords = {'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 
+                        'have', 'has', 'had', 'do', 'does', 'did', 'and', 'or', 'but'}
+            lemmas = [w for w in words if w not in stopwords]
+        
+        if self._trained and self.lda_model is not None:
+            return self._model_with_trained(text, sentences, lemmas, keyphrases)
+        
+        return self._model_statistical(text, sentences, lemmas, keyphrases)
     
     def _model_with_trained(self, text: str, sentences: List[str], 
+                           lemmas: List[str],
                            keyphrases: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Model topics using trained LDA"""
+        """Model topics using trained LDA with preprocessed lemmas"""
         # Transform text
         if len(sentences) < 2:
             sentences = [text]
@@ -151,10 +169,11 @@ class TopicModeler:
         }
     
     def _model_statistical(self, text: str, sentences: List[str], 
+                          lemmas: List[str],
                           keyphrases: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Statistical topic modeling when model is not trained
-        Uses simple clustering approach
+        Statistical topic modeling using preprocessed lemmas
+        Uses simple clustering approach when LDA not trained
         """
         # Group keyphrases by co-occurrence
         keyphrase_texts = [kp["phrase"] for kp in keyphrases]

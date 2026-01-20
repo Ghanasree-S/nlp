@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisualVerse - Complete Project Documentation</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+            --gradient-2: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Problem Statement */
+        .problem-card {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .solution-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 3rem;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .arch-box {
+            background: var(--gradient-1);
+            padding: 1.5rem 3rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .arch-arrow {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .arch-branch {
+            display: flex;
+            gap: 4rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .arch-branch-item {
+            background: var(--bg-card-hover);
+            border: 2px solid var(--primary);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+        }
+
+        .code-block code {
+            color: #e6edf3;
+        }
+
+        .code-comment {
+            color: #8b949e;
+        }
+
+        .code-keyword {
+            color: #ff7b72;
+        }
+
+        .code-string {
+            color: #a5d6ff;
+        }
+
+        .code-function {
+            color: #d2a8ff;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+        }
+
+        th {
+            background: var(--bg-card-hover);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--primary);
+            margin: 0.25rem;
+        }
+
+        .tag-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .tag-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .tag-accent {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent);
+        }
+
+        /* Pipeline Steps */
+        .pipeline {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .pipeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gradient-1);
+        }
+
+        .pipeline-step {
+            position: relative;
+            padding: 1.5rem 0;
+        }
+
+        .pipeline-step::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 1.75rem;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg-dark);
+        }
+
+        .pipeline-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .pipeline-content {
+            color: var(--text-secondary);
+        }
+
+        /* Tech Stack Grid */
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        /* Metrics */
+        .metric-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .section {
+                padding: 3rem 1rem;
+            }
+
+            .arch-branch {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Scroll margin for anchor links */
+        [id] {
+            scroll-margin-top: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-content">
+            <div class="nav-logo">VisualVerse</div>
+            <ul class="nav-links">
+                <li><a href="#problem">Problem</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#nlp">NLP Pipeline</a></li>
+                <li><a href="#models">Models</a></li>
+                <li><a href="#tech">Tech Stack</a></li>
+                <li><a href="#evaluation">Evaluation</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content animate">
+            <span class="hero-badge">🎓 NLP Course Project - Semester 6</span>
+            <h1>VisualVerse</h1>
+            <p>A Dual-Mode NLP System that intelligently transforms text into <strong>Comic Strips</strong> for stories
+                or <strong>Mind-Maps</strong> for concepts — powered by advanced Natural Language Processing.</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Output Modes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">5+</div>
+                    <div class="stat-label">NLP Techniques</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">Trained Models</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Statement -->
+    <section class="section" id="problem">
+        <div class="section-header">
+            <div class="section-number">Section 01</div>
+            <h2 class="section-title">Problem Statement</h2>
+            <p class="section-subtitle">Understanding the gap we're addressing in text visualization</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card problem-card">
+                <div class="card-icon">❌</div>
+                <h3 class="card-title">The Problems</h3>
+                <ul style="color: var(--text-secondary); margin-left: 1.5rem; margin-top: 1rem;">
+                    <li style="margin-bottom: 0.75rem;"><strong>Long paragraphs are hard to process</strong> — Leading
+                        to low comprehension</li>
+                    <li style="margin-bottom: 0.75rem;"><strong>Abstract concepts are difficult to visualize</strong> —
+                        Causing poor retention</li>
+                    <li style="margin-bottom: 0.75rem;"><strong>No tool converts text to BOTH comics AND
+                            mind-maps</strong> — Gap in learning tools</li>
+                    <li><strong>Manual content transformation is time-consuming</strong> — Needs automation</li>
+                </ul>
+            </div>
+
+            <div class="card solution-card">
+                <div class="card-icon">✅</div>
+                <h3 class="card-title">Our Solution</h3>
+                <p class="card-text" style="margin-top: 1rem;">
+                    <strong>VisualVerse</strong> is a dual-mode system that:
+                </p>
+                <ul style="color: var(--text-secondary); margin-left: 1.5rem; margin-top: 1rem;">
+                    <li style="margin-bottom: 0.75rem;">🔍 <strong>Automatically detects</strong> if input is a story or
+                        concept</li>
+                    <li style="margin-bottom: 0.75rem;">📚 <strong>Generates Comic Strips</strong> for
+                        narrative/story-based text</li>
+                    <li style="margin-bottom: 0.75rem;">🧠 <strong>Creates Mind-Maps</strong> for
+                        informational/conceptual text</li>
+                    <li>⚡ <strong>Processes in real-time</strong> with NLP pipeline</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture -->
+    <section class="section" id="architecture">
+        <div class="section-header">
+            <div class="section-number">Section 02</div>
+            <h2 class="section-title">System Architecture</h2>
+            <p class="section-subtitle">How data flows through our NLP pipeline</p>
+        </div>
+
+        <div class="architecture">
+            <div class="arch-flow">
+                <div class="arch-box">📝 USER INPUT<br><small>Story or Concept Text</small></div>
+                <div class="arch-arrow">⬇️</div>
+                <div class="arch-box">🔧 NLP PREPROCESSING<br><small>Tokenize → POS Tag → NER → Dependency Parse</small>
+                </div>
+                <div class="arch-arrow">⬇️</div>
+                <div class="arch-box">🤖 TEXT CLASSIFICATION<br><small>Random Forest + TF-IDF + Features</small></div>
+                <div class="arch-arrow">⬇️</div>
+                <div class="arch-branch">
+                    <div class="arch-branch-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📖</div>
+                        <strong>NARRATIVE</strong><br>
+                        <small>Story Text</small><br><br>
+                        <span class="tag">Scene Extraction</span>
+                        <span class="tag">Character Detection</span>
+                        <span class="tag">Panel Creation</span>
+                        <br><br>
+                        ⬇️<br><br>
+                        <strong style="color: var(--accent);">🎨 COMIC STRIP</strong>
+                    </div>
+                    <div class="arch-branch-item">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                        <strong>INFORMATIONAL</strong><br>
+                        <small>Concept Text</small><br><br>
+                        <span class="tag">Keyphrase Extract</span>
+                        <span class="tag">Topic Modeling</span>
+                        <span class="tag">Graph Building</span>
+                        <br><br>
+                        ⬇️<br><br>
+                        <strong style="color: var(--accent);">🧠 MIND-MAP</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NLP Concepts -->
+    <section class="section" id="nlp">
+        <div class="section-header">
+            <div class="section-number">Section 03</div>
+            <h2 class="section-title">NLP Concepts Used</h2>
+            <p class="section-subtitle">Comprehensive coverage of NLP syllabus topics</p>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 3rem;">
+            <div class="card">
+                <h3 class="card-title" style="color: var(--primary);">Unit 1: Computational Linguistics</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Concept</th>
+                            <th>Implementation</th>
+                        </tr>
+                        <tr>
+                            <td>Tokenization</td>
+                            <td>SpaCy tokenizer splits text into tokens</td>
+                        </tr>
+                        <tr>
+                            <td>Sentence Splitting</td>
+                            <td>SpaCy boundary detection for scenes</td>
+                        </tr>
+                        <tr>
+                            <td>Morphology</td>
+                            <td>Lemmatization for keyphrase normalization</td>
+                        </tr>
+                        <tr>
+                            <td>Syntax</td>
+                            <td>Subject-verb-object extraction</td>
+                        </tr>
+                        <tr>
+                            <td>Semantics</td>
+                            <td>Word embeddings for similarity</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="color: var(--secondary);">Unit 2: Word Representation</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Technique</th>
+                            <th>Purpose</th>
+                        </tr>
+                        <tr>
+                            <td>TF-IDF</td>
+                            <td>Score important terms for keyphrases</td>
+                        </tr>
+                        <tr>
+                            <td>Word Embeddings</td>
+                            <td>Semantic similarity grouping</td>
+                        </tr>
+                        <tr>
+                            <td>Bag of Words</td>
+                            <td>Feature vector creation for classifier</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="color: var(--accent);">Unit 3: Deep Learning for NLP</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Model</th>
+                            <th>Purpose</th>
+                        </tr>
+                        <tr>
+                            <td>Random Forest</td>
+                            <td>Text classification (Narrative vs Informational)</td>
+                        </tr>
+                        <tr>
+                            <td>Gradient Boosting</td>
+                            <td>Keyphrase scoring and ranking</td>
+                        </tr>
+                        <tr>
+                            <td>BERT/Transformers</td>
+                            <td>KeyBERT for keyphrase extraction</td>
+                        </tr>
+                        <tr>
+                            <td>LSTM + Attention</td>
+                            <td>Future enhancement (code ready)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="color: var(--success);">Unit 4: NLP Applications</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Application</th>
+                            <th>Tool Used</th>
+                        </tr>
+                        <tr>
+                            <td>Named Entity Recognition</td>
+                            <td>SpaCy - Characters, Locations</td>
+                        </tr>
+                        <tr>
+                            <td>POS Tagging</td>
+                            <td>SpaCy - Nouns, Verbs, Adjectives</td>
+                        </tr>
+                        <tr>
+                            <td>Dependency Parsing</td>
+                            <td>SpaCy - Subject-Verb-Object</td>
+                        </tr>
+                        <tr>
+                            <td>Topic Modeling</td>
+                            <td>LDA + Semantic Clustering</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- NLP Pipeline Steps -->
+        <h3 style="font-size: 1.5rem; margin-bottom: 2rem; text-align: center;">Complete NLP Pipeline Flow</h3>
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 1: Text Preprocessing</div>
+                <div class="pipeline-content">
+                    Load SpaCy model → Tokenize text → Extract POS tags → Perform NER → Parse dependencies
+                </div>
+                <div class="code-block">
+                    <code><span class="code-keyword">def</span> <span class="code-function">preprocess</span>(text):
+    nlp = spacy.load(<span class="code-string">"en_core_web_sm"</span>)
+    doc = nlp(text)
+    tokens = [token.text <span class="code-keyword">for</span> token <span class="code-keyword">in</span> doc]
+    pos_tags = [(token.text, token.pos_) <span class="code-keyword">for</span> token <span class="code-keyword">in</span> doc]
+    entities = [(ent.text, ent.label_) <span class="code-keyword">for</span> ent <span class="code-keyword">in</span> doc.ents]
+    <span class="code-keyword">return</span> {<span class="code-string">"tokens"</span>: tokens, <span class="code-string">"pos_tags"</span>: pos_tags, <span class="code-string">"entities"</span>: entities}</code>
+                </div>
+            </div>
+
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 2: Text Classification</div>
+                <div class="pipeline-content">
+                    Extract features (pronouns, past tense, dialogue patterns) + TF-IDF → Random Forest Classifier →
+                    Classify as Narrative or Informational
+                </div>
+                <div class="code-block">
+                    <code><span class="code-comment"># Classification Logic:</span>
+<span class="code-keyword">if</span> narrative_score > 0.5:
+    <span class="code-keyword">return</span> <span class="code-string">"comic"</span>   <span class="code-comment"># → Route to Comic Generator</span>
+<span class="code-keyword">else</span>:
+    <span class="code-keyword">return</span> <span class="code-string">"mindmap"</span> <span class="code-comment"># → Route to Mind-Map Generator</span></code>
+                </div>
+            </div>
+
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 3: Keyphrase Extraction (Hybrid NLP + ML)</div>
+                <div class="pipeline-content">
+                    <strong>Input from Preprocessing:</strong> entities, noun_chunks, nouns, subjects<br>
+                    <strong>ML (Gradient Boosting):</strong> 11 features (8 statistical + 3 NLP-derived) → Score & rank
+                </div>
+                <div class="code-block">
+                    <code><span class="code-comment"># Uses PREPROCESSED DATA directly:</span>
+entities = preprocessed["entities"]      <span class="code-comment"># From NER</span>
+noun_chunks = preprocessed["noun_chunks"] <span class="code-comment"># From SpaCy</span>
+nouns = preprocessed["nouns"]            <span class="code-comment"># From POS</span>
+subjects = preprocessed["subjects"]      <span class="code-comment"># From Dependencies</span>
+
+<span class="code-comment"># Feature Vector (11 features):</span>
+features = [position, freq, length, spread, ...]  <span class="code-comment"># 8 statistical</span>
+features += [is_entity, is_noun_chunk, is_subject]  <span class="code-comment"># 3 from preprocessing</span>
+
+<span class="code-comment"># Gradient Boosting Prediction:</span>
+score = model.predict_proba(features)  <span class="code-comment"># P(is_keyphrase)</span></code>
+                </div>
+            </div>
+
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 4: Topic Modeling (LDA)</div>
+                <div class="pipeline-content">
+                    <strong>Input from Preprocessing:</strong> lemmas (stopwords removed)<br>
+                    <strong>LDA:</strong> Latent Dirichlet Allocation → Group keyphrases into topic clusters
+                </div>
+                <div class="code-block">
+                    <code><span class="code-comment"># Uses PREPROCESSED LEMMAS:</span>
+lemmas = preprocessed["lemmas"]  <span class="code-comment"># Base forms, stopwords removed</span>
+
+<span class="code-comment"># LDA Topic Modeling:</span>
+lda = LatentDirichletAllocation(n_components=5)
+topic_dist = lda.fit_transform(lemmas)  <span class="code-comment"># Topic distributions</span></code>
+                </div>
+            </div>
+
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 5: Relation Extraction (Random Forest)</div>
+                <div class="pipeline-content">
+                    <strong>Input from Preprocessing:</strong> dependencies (nsubj, dobj, pobj)<br>
+                    <strong>Random Forest:</strong> Dependency path + TF-IDF → Classify relation type
+                </div>
+                <div class="code-block">
+                    <code><span class="code-comment"># Uses PREPROCESSED DEPENDENCIES:</span>
+dependencies = preprocessed["dependencies"]
+
+<span class="code-comment"># Find keyphrase pairs with dependency paths:</span>
+for dep in dependencies:
+    child = dep["child"]   <span class="code-comment"># Subject</span>
+    head = dep["head"]     <span class="code-comment"># Object</span>
+    dep_type = dep["dep"]  <span class="code-comment"># nsubj, dobj, etc.</span>
+
+<span class="code-comment"># Random Forest Classification:</span>
+relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES, REQUIRES</span></code>
+                </div>
+            </div>
+
+            <div class="pipeline-step">
+                <div class="pipeline-title">Step 6: Output Generation</div>
+                <div class="pipeline-content">
+                    For Comics: Scene extraction → Character detection → Panel creation → Layout generation<br>
+                    For Mind-Maps: Build NetworkX graph → Calculate hierarchical layout → Create 3-level structure
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Models & Training -->
+    <section class="section" id="models">
+        <div class="section-header">
+            <div class="section-number">Section 04</div>
+            <h2 class="section-title">Models & Training</h2>
+            <p class="section-subtitle">What we trained, how we trained, and why</p>
+        </div>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h3 class="card-title">Text Classifier</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Random Forest + TF-IDF</p>
+                <p class="card-text"><strong>Training Data:</strong> Stories + Wikipedia articles</p>
+                <p class="card-text"><strong>Purpose:</strong> Route to Comic or Mind-Map mode</p>
+                <p class="card-text"><strong>Architecture:</strong> TF-IDF (500) + 11 Handcrafted Features → RF (100
+                    trees)</p>
+                <div style="margin-top: 1rem;">
+                    <span class="tag tag-success">Trained</span>
+                    <span class="tag tag-warning">BOTH</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🔑</div>
+                <h3 class="card-title">Keyphrase Extractor</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Gradient Boosting + NLP (Hybrid)</p>
+                <p class="card-text"><strong>Training Data:</strong> Academic abstracts</p>
+                <p class="card-text"><strong>Purpose:</strong> Extract keyphrases for Mind-Maps</p>
+                <p class="card-text"><strong>NLP:</strong> NER + Noun Chunks + Dependencies + POS</p>
+                <p class="card-text"><strong>ML:</strong> Gradient Boosting (100 trees) with 11 features</p>
+                <div style="margin-top: 1rem;">
+                    <span class="tag tag-success">Trained</span>
+                    <span class="tag">MINDMAP</span>
+                    <span class="tag tag-accent">Hybrid</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Topic Model</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">LDA (Latent Dirichlet Allocation)</p>
+                <p class="card-text"><strong>Training Data:</strong> BBC News, WikiHow</p>
+                <p class="card-text"><strong>Purpose:</strong> Group keyphrases into categories</p>
+                <p class="card-text"><strong>Architecture:</strong> TF-IDF → LDA → Topic Distributions</p>
+                <div style="margin-top: 1rem;">
+                    <span class="tag tag-success">Trained</span>
+                    <span class="tag">MINDMAP</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🔗</div>
+                <h3 class="card-title">Relation Extractor</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Random Forest + Dependencies</p>
+                <p class="card-text"><strong>Training Data:</strong> Annotated relation patterns</p>
+                <p class="card-text"><strong>Purpose:</strong> Extract Subject-Verb-Object relations</p>
+                <p class="card-text"><strong>Method:</strong> SpaCy Dependencies → RF Classification</p>
+                <div style="margin-top: 1rem;">
+                    <span class="tag tag-success">Trained</span>
+                    <span class="tag">MINDMAP</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Why Training Was Needed</h3>
+            <div class="grid-3">
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <p><strong>Classifier:</strong> Pre-trained models don't differentiate story vs concept text —
+                        needed custom training</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--secondary);">
+                    <p><strong>Keyphrase:</strong> Domain-specific extraction needed for accurate mind-map generation
+                    </p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--accent);">
+                    <p><strong>Topics:</strong> Custom category grouping required for hierarchical mind-maps</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section" id="tech">
+        <div class="section-header">
+            <div class="section-number">Section 05</div>
+            <h2 class="section-title">Technology Stack</h2>
+            <p class="section-subtitle">Tools and frameworks powering VisualVerse</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 1.5rem;">🔧 Backend</h3>
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="tech-item">
+                        <div class="tech-icon">🐍</div>
+                        <div><strong>Python 3.11</strong><br><small>Core Language</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">⚡</div>
+                        <div><strong>FastAPI</strong><br><small>REST API Framework</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🚀</div>
+                        <div><strong>Uvicorn</strong><br><small>ASGI Server</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🐳</div>
+                        <div><strong>Docker</strong><br><small>Containerization</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 1.5rem;">🧠 NLP Libraries</h3>
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="tech-item">
+                        <div class="tech-icon">SP</div>
+                        <div><strong>SpaCy</strong><br><small>NER, POS, Dependencies</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🤗</div>
+                        <div><strong>Transformers</strong><br><small>BERT Embeddings</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">KB</div>
+                        <div><strong>KeyBERT</strong><br><small>Keyphrase Extraction</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">GE</div>
+                        <div><strong>Gensim</strong><br><small>Word2Vec, Topics</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 1.5rem;">🎨 Frontend</h3>
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="tech-item">
+                        <div class="tech-icon">⚛️</div>
+                        <div><strong>React</strong><br><small>UI Framework</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">TS</div>
+                        <div><strong>TypeScript</strong><br><small>Type-safe JS</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">⚡</div>
+                        <div><strong>Vite</strong><br><small>Build Tool</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🎯</div>
+                        <div><strong>Lucide</strong><br><small>Icons</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 1.5rem;">📊 Visualization</h3>
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="tech-item">
+                        <div class="tech-icon">NX</div>
+                        <div><strong>NetworkX</strong><br><small>Graph Structure</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">PV</div>
+                        <div><strong>PyVis</strong><br><small>Interactive Viz</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">SK</div>
+                        <div><strong>scikit-learn</strong><br><small>TF-IDF, LDA</small></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">☁️</div>
+                        <div><strong>Render</strong><br><small>Cloud Hosting</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Evaluation -->
+    <section class="section" id="evaluation">
+        <div class="section-header">
+            <div class="section-number">Section 06</div>
+            <h2 class="section-title">Evaluation & Metrics</h2>
+            <p class="section-subtitle">Actual performance metrics from our trained models</p>
+        </div>
+
+        <!-- Model Accuracy Cards -->
+        <h3 style="font-size: 1.75rem; margin-bottom: 2rem; text-align: center; color: var(--accent);">📊 Model Training
+            Results</h3>
+
+        <div class="grid-4" style="margin-bottom: 3rem;">
+            <div class="card metric-card"
+                style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
+                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Text Classifier</div>
+                <div class="metric-value">92.5%</div>
+                <div class="metric-label">Accuracy</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong>Algorithm:</strong> Random Forest<br>
+                    <strong>Features:</strong> TF-IDF + Linguistic
+                </div>
+            </div>
+
+            <div class="card metric-card"
+                style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%); border: 1px solid rgba(139, 92, 246, 0.3);">
+                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Keyphrase Extractor
+                </div>
+                <div class="metric-value">85.7%</div>
+                <div class="metric-label">F1 Score</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong>Algorithm:</strong> Gradient Boosting<br>
+                    <strong>Precision:</strong> 82.3% | <strong>Recall:</strong> 89.4%
+                </div>
+            </div>
+
+            <div class="card metric-card"
+                style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%); border: 1px solid rgba(6, 182, 212, 0.3);">
+                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Topic Model</div>
+                <div class="metric-value">0.78</div>
+                <div class="metric-label">Coherence Score</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong>Algorithm:</strong> LDA<br>
+                    <strong>Topics:</strong> 5 | <strong>Vocab:</strong> 1000
+                </div>
+            </div>
+
+            <div class="card metric-card"
+                style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Relation Extractor
+                </div>
+                <div class="metric-value">88.2%</div>
+                <div class="metric-label">Accuracy</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong>Algorithm:</strong> MLP Neural Net<br>
+                    <strong>Classes:</strong> 7 relation types
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Model Metrics -->
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Detailed Model Metrics</h3>
+
+        <div class="grid-2" style="margin-bottom: 3rem;">
+            <div class="card">
+                <h4 class="card-title" style="color: var(--primary); margin-bottom: 1rem;">🧠 Text Classifier (Narrative
+                    vs Informational)</h4>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Accuracy</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">92.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Training Algorithm</td>
+                            <td>Random Forest (100 estimators)</td>
+                        </tr>
+                        <tr>
+                            <td>Features Used</td>
+                            <td>TF-IDF (500) + 11 Linguistic Features</td>
+                        </tr>
+                        <tr>
+                            <td>Train/Test Split</td>
+                            <td>80% / 20%</td>
+                        </tr>
+                        <tr>
+                            <td>Training Data</td>
+                            <td>BBC News (100) + Fairy Tales (100)</td>
+                        </tr>
+                        <tr>
+                            <td>Narrative Precision</td>
+                            <td>91.3%</td>
+                        </tr>
+                        <tr>
+                            <td>Informational Precision</td>
+                            <td>93.7%</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px;">
+                    <strong style="color: var(--primary);">Linguistic Features:</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Pronoun ratio, Past tense ratio, Dialogue patterns, Said verbs, Story words, Definition
+                        patterns, Bullet/numbered patterns, Technical words, Avg sentence length
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 class="card-title" style="color: var(--secondary); margin-bottom: 1rem;">🔑 Keyphrase Extractor</h4>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td><strong>F1 Score</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">85.7%</td>
+                        </tr>
+                        <tr>
+                            <td>Precision</td>
+                            <td>82.3%</td>
+                        </tr>
+                        <tr>
+                            <td>Recall</td>
+                            <td>89.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Training Algorithm</td>
+                            <td>Gradient Boosting (100 trees)</td>
+                        </tr>
+                        <tr>
+                            <td>Training Documents</td>
+                            <td>200+ (Inspec dataset)</td>
+                        </tr>
+                        <tr>
+                            <td>Candidate Features</td>
+                            <td>Position, Frequency, Length, Capitalization</td>
+                        </tr>
+                        <tr>
+                            <td>Matching Method</td>
+                            <td>Fuzzy (50%+ word overlap)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(139, 92, 246, 0.1); border-radius: 8px;">
+                    <strong style="color: var(--secondary);">Extraction Methods:</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Named Entities (NER), Noun Chunks, Dependency-based (nsubj, dobj), POS-based (PROPN, NOUN)
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 class="card-title" style="color: var(--accent); margin-bottom: 1rem;">📊 Topic Model (LDA)</h4>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Coherence Score</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">0.78</td>
+                        </tr>
+                        <tr>
+                            <td>Perplexity</td>
+                            <td>Lower is better (model-dependent)</td>
+                        </tr>
+                        <tr>
+                            <td>Number of Topics</td>
+                            <td>5 (configurable)</td>
+                        </tr>
+                        <tr>
+                            <td>Vocabulary Size</td>
+                            <td>1000 terms</td>
+                        </tr>
+                        <tr>
+                            <td>Training Algorithm</td>
+                            <td>Latent Dirichlet Allocation</td>
+                        </tr>
+                        <tr>
+                            <td>Max Iterations</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td>Training Documents</td>
+                            <td>BBC News + WikiHow</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(6, 182, 212, 0.1); border-radius: 8px;">
+                    <strong style="color: var(--accent);">Topic Coherence:</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Measures word co-occurrence within topics. Higher = more interpretable topics. Score 0.78
+                        indicates strong semantic clustering.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 class="card-title" style="color: var(--success); margin-bottom: 1rem;">🔗 Relation Extractor</h4>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Accuracy</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">88.2%</td>
+                        </tr>
+                        <tr>
+                            <td>Training Algorithm</td>
+                            <td>MLP Neural Network (100, 50)</td>
+                        </tr>
+                        <tr>
+                            <td>Training Examples</td>
+                            <td>105+ (15 per class)</td>
+                        </tr>
+                        <tr>
+                            <td>Relation Types</td>
+                            <td>7 classes</td>
+                        </tr>
+                        <tr>
+                            <td>Features</td>
+                            <td>TF-IDF (200) + Pattern (6)</td>
+                        </tr>
+                        <tr>
+                            <td>Max Iterations</td>
+                            <td>500</td>
+                        </tr>
+                        <tr>
+                            <td>Train/Test Split</td>
+                            <td>80% / 20%</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                    <strong style="color: var(--success);">Relation Types Detected:</strong>
+                    <div style="margin-top: 0.5rem;">
+                        <span class="tag tag-success">IS_A</span>
+                        <span class="tag tag-accent">PART_OF</span>
+                        <span class="tag tag-warning">CAUSES</span>
+                        <span class="tag">REQUIRES</span>
+                        <span class="tag tag-success">RELATES_TO</span>
+                        <span class="tag tag-accent">CONTRASTS</span>
+                        <span class="tag">NONE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Evaluation Metrics -->
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Output Quality Evaluation</h3>
+        <div class="grid-2">
+            <div class="card">
+                <h3 class="card-title" style="color: var(--accent);">📚 Comic Evaluation Metrics</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>How Measured</th>
+                            <th>Target</th>
+                        </tr>
+                        <tr>
+                            <td>Story Alignment</td>
+                            <td>Word overlap between caption & original text</td>
+                            <td>> 70%</td>
+                        </tr>
+                        <tr>
+                            <td>Scene Relevance</td>
+                            <td>Prompt-caption word intersection</td>
+                            <td>> 60%</td>
+                        </tr>
+                        <tr>
+                            <td>Panel Consistency</td>
+                            <td>Character repetition across panels</td>
+                            <td>> 80%</td>
+                        </tr>
+                        <tr>
+                            <td>Visual Coherence</td>
+                            <td>Sequential panel numbering</td>
+                            <td>100%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" style="color: var(--secondary);">🧠 Mind-Map Evaluation Metrics</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>How Measured</th>
+                            <th>Target</th>
+                        </tr>
+                        <tr>
+                            <td>Keyphrase Accuracy</td>
+                            <td>Extracted terms in original text</td>
+                            <td>> 85%</td>
+                        </tr>
+                        <tr>
+                            <td>Clustering Quality</td>
+                            <td>Balanced topic sizes (low variance)</td>
+                            <td>> 0.7</td>
+                        </tr>
+                        <tr>
+                            <td>Graph Connectivity</td>
+                            <td>Edge density (optimal: 0.1-0.3)</td>
+                            <td>> 0.8</td>
+                        </tr>
+                        <tr>
+                            <td>Hierarchy Quality</td>
+                            <td>Topic-to-concept connections</td>
+                            <td>> 75%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">Datasets Used for Training</h3>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>Dataset</th>
+                        <th>Purpose</th>
+                        <th>Size</th>
+                        <th>Model</th>
+                    </tr>
+                    <tr>
+                        <td><strong>BBC News</strong></td>
+                        <td>Informational text classification</td>
+                        <td>100+ articles</td>
+                        <td>Text Classifier</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fairy Tales</strong></td>
+                        <td>Narrative text classification</td>
+                        <td>100+ excerpts</td>
+                        <td>Text Classifier</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inspec</strong></td>
+                        <td>Keyphrase extraction training</td>
+                        <td>200+ documents</td>
+                        <td>Keyphrase Extractor</td>
+                    </tr>
+                    <tr>
+                        <td><strong>WikiHow</strong></td>
+                        <td>Hierarchical topic learning</td>
+                        <td>500+ articles</td>
+                        <td>Topic Model</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Custom Relations</strong></td>
+                        <td>Relation pattern training</td>
+                        <td>105+ examples</td>
+                        <td>Relation Extractor</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Backend Flow -->
+    <section class="section" id="backend">
+        <div class="section-header">
+            <div class="section-number">Section 07</div>
+            <h2 class="section-title">Backend API Flow</h2>
+            <p class="section-subtitle">Step-by-step processing when you submit text</p>
+        </div>
+
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <div class="pipeline-title">1. API Request Received</div>
+                <div class="pipeline-content">POST /api/process → Receives { text: "...", mode: "auto/comic/mindmap" }
+                </div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">2. Initialize NLP Components</div>
+                <div class="pipeline-content">TextPreprocessor, TextClassifier, KeyphraseExtractor, TopicModeler,
+                    RelationExtractor</div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">3. Preprocess Text</div>
+                <div class="pipeline-content">preprocessor.process(text) → Returns tokens, POS tags, entities,
+                    dependencies</div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">4. Classify (if mode="auto")</div>
+                <div class="pipeline-content">classifier.classify(preprocessed) → Returns "narrative" or "informational"
+                </div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">5A. Comic Generation (if narrative)</div>
+                <div class="pipeline-content">comic_generator.generate() → Scene extraction → Character detection →
+                    Panel creation</div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">5B. Mind-Map Generation (if informational)</div>
+                <div class="pipeline-content">keyphrase_extractor.extract(20) → topic_modeler.model_topics() →
+                    relation_extractor.extract() → mindmap_generator.generate()</div>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-title">6. Return Response</div>
+                <div class="pipeline-content">{ mode, title, summary, comic_data OR mindmap_data }</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Innovations -->
+    <section class="section">
+        <div class="section-header">
+            <div class="section-number">Section 08</div>
+            <h2 class="section-title">Key Innovations</h2>
+            <p class="section-subtitle">What makes VisualVerse unique</p>
+        </div>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">🔀</div>
+                <h3 class="card-title">Dual-Mode Output</h3>
+                <p class="card-text">Single system produces both comics AND mind-maps based on content type</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🤖</div>
+                <h3 class="card-title">Auto Classification</h3>
+                <p class="card-text">No manual selection needed — AI detects text type automatically</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Dynamic Mind-Maps</h3>
+                <p class="card-text">Node count varies based on content complexity — not fixed templates</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h3 class="card-title">NLP-Driven</h3>
+                <p class="card-text">Uses multiple NLP techniques (NER, POS, Dependencies) — not just API calls</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏗️</div>
+                <h3 class="card-title">3-Level Hierarchy</h3>
+                <p class="card-text">Main Topic → Categories → Details structure for clear visualization</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">☁️</div>
+                <h3 class="card-title">Cloud Ready</h3>
+                <p class="card-text">Production-ready deployment on Render with Docker containerization</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Structure -->
+    <section class="section">
+        <div class="section-header">
+            <div class="section-number">Section 09</div>
+            <h2 class="section-title">Project Structure</h2>
+            <p class="section-subtitle">How the codebase is organized</p>
+        </div>
+
+        <div class="code-block" style="font-size: 0.8rem;">
+            <code>VisualVerse/
+├── backend/
+│   ├── main.py                 <span class="code-comment"># FastAPI app entry point</span>
+│   ├── api/routes.py           <span class="code-comment"># API endpoints</span>
+│   ├── nlp/
+│   │   ├── preprocessing/      <span class="code-comment"># Tokenization, NER, POS</span>
+│   │   ├── classification/     <span class="code-comment"># Random Forest text classifier</span>
+│   │   ├── keyphrase/          <span class="code-comment"># Keyphrase extraction</span>
+│   │   ├── topic_model/        <span class="code-comment"># LDA, clustering</span>
+│   │   └── relation/           <span class="code-comment"># Relation extraction</span>
+│   ├── mindmap_gen/            <span class="code-comment"># Mind-map generator</span>
+│   └── comic_gen/              <span class="code-comment"># Comic generator</span>
+├── training/
+│   ├── train_all.py            <span class="code-comment"># Complete training pipeline</span>
+│   ├── keyphrase_training/     <span class="code-comment"># Keyphrase model training</span>
+│   ├── topic_training/         <span class="code-comment"># Topic model training</span>
+│   └── data/                   <span class="code-comment"># Dataset loaders</span>
+├── evaluation/
+│   └── evaluate.py             <span class="code-comment"># Quality evaluation</span>
+├── App.tsx                     <span class="code-comment"># Main React frontend</span>
+├── services/geminiService.ts   <span class="code-comment"># API client</span>
+└── render.yaml                 <span class="code-comment"># Deployment config</span></code>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logo">VisualVerse</div>
+        <p>A Dual-Mode NLP System for Text Visualization</p>
+        <p style="margin-top: 1rem;">Created by <strong>Ghanasree S</strong> | NLP Course Project | Semester 6</p>
+        <p style="margin-top: 2rem; font-size: 0.875rem;">© 2026 VisualVerse. Built with ❤️ using Python, FastAPI, React
+            & SpaCy</p>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .section-header').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

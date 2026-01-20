@@ -59,7 +59,7 @@ The system uses **Natural Language Processing (NLP)** for text understanding, cl
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   TEXT CLASSIFICATION                            │
-│            (LSTM + Feature-based Classifier)                     │
+│       (Random Forest + TF-IDF + Feature-based Classifier)        │
 │                               │                                  │
 │              ┌────────────────┼────────────────┐                │
 │              ▼                                 ▼                │
@@ -112,9 +112,9 @@ The system uses **Natural Language Processing (NLP)** for text understanding, cl
 
 | Model | Where Used | Purpose |
 |-------|-----------|---------|
-| **LSTM** | Text classifier | Narrative vs Informational detection |
+| **Random Forest** | Text classifier | Narrative vs Informational detection |
+| **Gradient Boosting** | Keyphrase scorer | Rank candidate keyphrases |
 | **BERT/Transformers** | KeyBERT | Keyphrase extraction with embeddings |
-| **Attention** | Sentence importance | Weight important sentences |
 
 ## Unit 4: NLP Applications
 
@@ -165,49 +165,65 @@ def preprocess(text):
 ## 6.2 Text Classification
 
 ```python
-# File: backend/nlp/classification/lstm_classifier.py
+# File: backend/nlp/classification/classifier.py
+# Model: Random Forest + TF-IDF + Handcrafted Features
 
-# Features used for classification:
-# 1. Narrative indicators: pronouns (he, she, they), past tense verbs
-# 2. Story markers: "once upon", "said", "walked", action verbs
-# 3. Dialogue patterns: quotation marks, speech verbs
-# 4. Named entities: PERSON count (stories have characters)
+# TF-IDF Features:
+# - Vectorize text with max 500 features
+# - Captures word importance in document
 
-# Classification logic:
-if narrative_score > 0.5:
-    return "comic"  # → Comic Generator
-else:
-    return "mindmap"  # → Mind-Map Generator
+# Handcrafted Features:
+# 1. narrative_pronouns: ratio of he/she/they pronouns
+# 2. past_tense_ratio: words ending in -ed
+# 3. dialogue_ratio: quoted text patterns
+# 4. said_verbs_ratio: "said", "asked", "replied"
+# 5. story_words_ratio: "once", "suddenly", "finally"
+# 6. definition_ratio: "is", "means", "refers"
+# 7. technical_words_ratio: "therefore", "however"
+
+# Classification:
+model = RandomForestClassifier(n_estimators=100)
+model.fit(combined_features, labels)  # TF-IDF + handcrafted
 ```
 
-## 6.3 Keyphrase Extraction Pipeline
+## 6.3 Keyphrase Extraction Pipeline (Hybrid NLP + ML)
 
 ```python
-# File: backend/nlp/keyphrase/keyphrase_extractor.py
+# File: backend/nlp/keyphrase/extractor.py
+# Used for: MINDMAP generation only
 
-def extract_keyphrases(text):
-    keyphrases = []
-    
-    # Method 1: Named Entities (PERSON, ORG, GPE, PRODUCT)
-    for ent in doc.ents:
-        keyphrases.append(ent.text)
-    
-    # Method 2: Noun Chunks (compound nouns)
-    for chunk in doc.noun_chunks:
-        keyphrases.append(chunk.text)
-    
-    # Method 3: Dependency-based (subjects, objects)
-    for token in doc:
-        if token.dep_ in ["nsubj", "dobj", "pobj"]:
-            keyphrases.append(token.text)
-    
-    # Method 4: POS-based (proper nouns, technical terms)
-    for token in doc:
-        if token.pos_ in ["PROPN", "NOUN"] and token.is_alpha:
-            keyphrases.append(token.lemma_)
-    
-    # Score and rank keyphrases
-    return rank_by_frequency_and_position(keyphrases)
+# STEP 1: NLP Candidate Generation (SpaCy)
+doc = nlp(text)
+
+# Method 1: Named Entities (NER)
+for ent in doc.ents:
+    if ent.label_ in ['ORG', 'PRODUCT', 'GPE']:
+        candidates[ent.text] = {'source': 'NER', 'is_entity': 1}
+
+# Method 2: Noun Chunks
+for chunk in doc.noun_chunks:
+    candidates[chunk.text] = {'source': 'NOUN_CHUNK', 'is_noun_chunk': 1}
+
+# Method 3: Dependency-based (subjects, objects)
+for token in doc:
+    if token.dep_ in ["nsubj", "dobj", "pobj"]:
+        candidates[token.text] = {'source': 'DEPENDENCY', 'is_subject': 1}
+
+# Method 4: POS-based (NOUN, PROPN)
+for token in doc:
+    if token.pos_ in ["PROPN", "NOUN"]:
+        candidates[token.text] = {'source': 'POS'}
+
+# STEP 2: Feature Extraction (11 features)
+features = [
+    position, freq_norm, word_count, char_len,    # Statistical (8)
+    in_first_100, in_first_200, spread, has_caps,
+    is_entity, is_noun_chunk, is_subject           # NLP-derived (3)
+]
+
+# STEP 3: Gradient Boosting Prediction
+model = GradientBoostingClassifier(n_estimators=100, max_depth=5)
+score = model.predict_proba(features)  # P(is_keyphrase)
 ```
 
 ## 6.4 Topic Modeling
@@ -406,7 +422,7 @@ VisualVerse/
 │   │   └── routes.py           # API endpoints
 │   ├── nlp/
 │   │   ├── preprocessing/      # Tokenization, NER, POS
-│   │   ├── classification/     # Text classifier (LSTM)
+│   │   ├── classification/     # Text classifier (Random Forest)
 │   │   ├── keyphrase/          # Keyphrase extraction
 │   │   ├── topic_model/        # LDA, clustering
 │   │   └── relation/           # Relation extraction
@@ -496,6 +512,7 @@ VisualVerse/
 
 # 16. Future Enhancements
 
+- [ ] **LSTM + Attention Classifier** - Upgrade from Random Forest to deep learning (code ready in `lstm_classifier.py`)
 - [ ] Multilingual support
 - [ ] Voice input → visual output
 - [ ] Custom comic styles (anime, realistic)
