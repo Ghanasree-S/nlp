@@ -157,6 +157,11 @@ class MindMapGenerator:
         
         # Look for key category indicators in text
         category_patterns = [
+            # Cause-Effect categories (environmental, analytical texts)
+            (["extraction", "harvesting", "farming", "logging", "deforestation", "clearing"], "Causes"),
+            (["loss", "erosion", "crisis", "decline", "damage", "destruction"], "Effects"),
+            (["agriculture", "soy", "crop", "livestock", "timber", "wood"], "Activities"),
+            
             # Technology categories
             (["frontend", "front-end", "client-side", "ui", "user interface"], "Frontend"),
             (["backend", "back-end", "server-side", "server"], "Backend"),
@@ -240,6 +245,12 @@ class MindMapGenerator:
         
         # Define semantic associations for better mapping
         category_keywords = {
+            # Environmental/Causal categories
+            "causes": ["extraction", "harvesting", "farming", "logging", "illegal", "deforestation", "clearing", "cutting"],
+            "effects": ["loss", "erosion", "decline", "damage", "destruction", "impact", "crisis", "biodiversity"],
+            "activities": ["agriculture", "soy", "crop", "livestock", "timber", "wood", "land", "large-scale"],
+            
+            # Technology categories
             "frontend": ["html", "css", "react", "angular", "vue", "ui", "design", "style", "visual", "page", "structure", "content"],
             "backend": ["node", "server", "api", "database", "logic", "python", "java", "express", "django"],
             "databases": ["sql", "nosql", "mongodb", "postgresql", "mysql", "data", "storage", "query"],
