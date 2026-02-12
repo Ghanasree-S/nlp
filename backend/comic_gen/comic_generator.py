@@ -5,27 +5,37 @@ Generates comic strips from narrative text using story segmentation and image ge
 
 import os
 import base64
+import logging
 from typing import Dict, Any, List
 import requests
 from io import BytesIO
 
+logger = logging.getLogger(__name__)
+
+# Text-to-image models on Hugging Face (in priority order)
+HF_MODELS = [
+    "stabilityai/stable-diffusion-xl-base-1.0",
+    "black-forest-labs/FLUX.1-schnell",
+]
+HF_ROUTER_URL = "https://router.huggingface.co/hf-inference/models"
+
 
 class ComicGenerator:
     """
-    Comic Strip Generator
+    Comic Strip Generator using Stable Diffusion XL via Hugging Face Inference API
     
     Pipeline:
     1. Segment story into scenes/beats
     2. Extract characters and settings for each scene
-    3. Generate scene descriptions (prompts for image generation)
-    4. Generate images using Stable Diffusion / DALL-E / or other models
+    3. Generate DreamShaper-style optimized prompts
+    4. Generate images via HF Inference API (SDXL / FLUX.1)
     5. Combine panels into comic strip layout
     """
     
     def __init__(self):
         """Initialize the comic generator"""
-        self.api_key = os.getenv("STABILITY_API_KEY") or os.getenv("OPENAI_API_KEY")
-        self.use_placeholder = True  # Use placeholder images if no API key
+        self.hf_token = os.getenv("HF_API_TOKEN", "")
+        self.use_placeholder = not bool(self.hf_token)
         
     async def generate(self, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -94,15 +104,30 @@ class ComicGenerator:
                             characters: List[str], 
                             locations: List[str]) -> List[Dict[str, Any]]:
         """
-        Segment story into comic panels
+        Segment story into comic panels.
         
-        Creates 4-6 panels with:
-        - Opening scene
-        - Rising action (1-2 panels)
-        - Climax
-        - Resolution
+        Panel count scales with input size:
+        - 1-2 sentences  → 1-2 panels (one per sentence)
+        - 3-5 sentences  → 3 panels
+        - 6-9 sentences  → 4 panels
+        - 10-15 sentences → 5-6 panels
+        - 16-24 sentences → 6-8 panels
+        - 25+ sentences  → 8-10 panels
         """
-        num_panels = min(max(4, len(sentences) // 2), 6)
+        n = len(sentences)
+        
+        if n <= 2:
+            num_panels = n
+        elif n <= 5:
+            num_panels = 3
+        elif n <= 9:
+            num_panels = 4
+        elif n <= 15:
+            num_panels = min(6, max(5, n // 3))
+        elif n <= 24:
+            num_panels = min(8, max(6, n // 3))
+        else:
+            num_panels = min(10, max(8, n // 4))
         
         if len(sentences) < num_panels:
             # If too few sentences, use each sentence as a panel
@@ -130,8 +155,8 @@ class ComicGenerator:
         # Generate image prompt from text
         prompt = self._generate_image_prompt(text, characters, locations)
         
-        # Create caption (shorter version for display)
-        caption = text if len(text) <= 100 else text[:97] + "..."
+        # Use full text as caption (no truncation)
+        caption = text
         
         return {
             "id": f"panel_{panel_num}",
@@ -148,15 +173,17 @@ class ComicGenerator:
                                characters: List[str], 
                                locations: List[str]) -> str:
         """
-        Generate a detailed image prompt for the panel
+        Generate a DreamShaper-optimized prompt for the panel.
         
-        Format: Comic book style, [scene description], [characters], [setting], [mood]
+        DreamShaper excels with detailed, descriptive prompts including
+        style keywords, quality boosters, and negative prompt hints.
         """
-        # Base style
-        style = "Comic book art style, vibrant colors, dynamic composition, "
+        # DreamShaper quality boosters
+        quality = "masterpiece, best quality, highly detailed"
+        style = "comic book art style, vibrant colors, dynamic composition, cel shading, bold outlines"
         
         # Scene description (simplified from text)
-        scene = text[:200] if len(text) > 200 else text
+        scene = text[:180] if len(text) > 180 else text
         
         # Characters
         char_desc = ""
@@ -170,9 +197,9 @@ class ComicGenerator:
         
         # Mood/atmosphere
         mood = self._detect_mood(text)
-        mood_desc = f"{mood} atmosphere"
+        mood_desc = f"{mood} atmosphere, cinematic lighting"
         
-        prompt = f"{style}{char_desc}{loc_desc}{scene}, {mood_desc}"
+        prompt = f"{quality}, {style}, {char_desc}{loc_desc}{scene}, {mood_desc}"
         
         return prompt
     
@@ -198,11 +225,58 @@ class ComicGenerator:
     
     async def _generate_panel_image(self, panel: Dict[str, Any]) -> str:
         """
-        Generate image for a panel
-        Returns fast SVG placeholder (can be upgraded to use Stable Diffusion locally)
+        Generate image for a panel using DreamShaper via HF Inference API.
+        Falls back to SVG placeholder if API is unavailable.
         """
-        # Use instant placeholder for fast loading
-        return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
+        if self.use_placeholder:
+            return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
+        
+        try:
+            return self._call_dreamshaper(panel["prompt"])
+        except Exception as e:
+            logger.warning(f"DreamShaper API failed for panel {panel['panel_number']}: {e}")
+            return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
+    
+    def _call_dreamshaper(self, prompt: str) -> str:
+        """
+        Call Hugging Face Inference API with SDXL / FLUX.1 models.
+        Tries models in priority order. Returns base64-encoded PNG data URI.
+        """
+        headers = {"Authorization": f"Bearer {self.hf_token}"}
+        
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "negative_prompt": "blurry, bad anatomy, bad hands, cropped, worst quality, low quality, watermark, text, signature, deformed",
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "width": 512,
+                "height": 512,
+            }
+        }
+        
+        last_error = None
+        for model in HF_MODELS:
+            url = f"{HF_ROUTER_URL}/{model}"
+            try:
+                response = requests.post(url, headers=headers, json=payload, timeout=120)
+                
+                if response.status_code == 200:
+                    img_bytes = response.content
+                    b64 = base64.b64encode(img_bytes).decode("utf-8")
+                    logger.info(f"Image generated successfully with {model}")
+                    return f"data:image/png;base64,{b64}"
+                else:
+                    last_error = f"{model} returned {response.status_code}: {response.text[:100]}"
+                    logger.warning(last_error)
+            except requests.exceptions.Timeout:
+                last_error = f"{model} timed out"
+                logger.warning(last_error)
+            except Exception as e:
+                last_error = f"{model} error: {e}"
+                logger.warning(last_error)
+        
+        raise RuntimeError(f"All HF models failed. Last error: {last_error}")
     
     def _get_placeholder_image(self, panel_number: int, caption: str = "") -> str:
         """
@@ -257,10 +331,16 @@ class ComicGenerator:
         num_panels = len(panels)
         
         if layout == "grid":
-            if num_panels <= 4:
+            if num_panels <= 2:
+                rows, cols = 1, num_panels
+            elif num_panels <= 4:
                 rows, cols = 2, 2
-            else:
+            elif num_panels <= 6:
                 rows, cols = 2, 3
+            elif num_panels <= 9:
+                rows, cols = 3, 3
+            else:
+                rows, cols = 4, 3
         elif layout == "vertical":
             rows, cols = num_panels, 1
         elif layout == "manga":

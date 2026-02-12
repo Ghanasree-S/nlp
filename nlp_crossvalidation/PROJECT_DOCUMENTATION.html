@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Model Evaluation Report</title>
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-purple);
+            padding-left: 1rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+        }
+        
+        .card-header {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .highlight-green { color: var(--accent-green); }
+        .highlight-purple { color: var(--accent-purple); }
+        .highlight-blue { color: var(--accent-blue); }
+        
+        /* Detailed Sections */
+        .section-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        /* Methodology List */
+        ul.methodology {
+            list-style: none;
+            padding: 0;
+        }
+        
+        ul.methodology li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        ul.methodology li::before {
+            content: "•";
+            color: var(--accent-purple);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            margin-right: 0.5rem;
+        }
+
+        .status-exceeded {
+            color: var(--accent-green);
+            background-color: rgba(16, 185, 129, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NLP Cross-Validation Results</h1>
+            <p class="subtitle">Comprehensive Evaluation & Methodology Report</p>
+           
+        </header>
+
+        <!-- Executive Summary Dashboard -->
+        <h2 style="margin-top: 0;">Executive Summary</h2>
+        <div class="dashboard-grid">
+            <!-- Text Classifier -->
+            <div class="card">
+                <div class="card-header">Text Classifier</div>
+                <div class="metric-value highlight-blue">96.53%</div>
+                <div class="metric-label">Mean Accuracy (5-Fold CV)</div>
+                <div style="margin-top: 1rem;">
+                    <span class="status-exceeded">Target Exceeded (+4.0%)</span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+                    Random Forest on TF-IDF features. Highly effective at distinguishing narrative vs informational text.
+                </p>
+            </div>
+
+            <!-- Keyphrase Extractor -->
+            <div class="card">
+                <div class="card-header">Keyphrase Extractor</div>
+                <div class="metric-value highlight-purple">72.84%</div>
+                <div class="metric-label">Mean F1 Score (5-Fold CV)</div>
+                <div style="margin-top: 1rem; font-size: 0.9rem;">
+                    Precision: <strong>72.2%</strong> | Recall: <strong>73.5%</strong>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+                    Gradient Boosting with TF-IDF & positional features on 10 diverse datasets. Strong realistic performance.
+                </p>
+            </div>
+
+            <!-- Topic Model -->
+            <div class="card">
+                <div class="card-header">Topic Model</div>
+                <div class="metric-value highlight-blue">0.526</div>
+                <div class="metric-label">Coherence Score (c_v)</div>
+                <div style="margin-top: 1rem; font-size: 0.9rem;">
+                    Perplexity: <strong>1311</strong> (Train) | <strong>2677</strong> (Test)
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+                    LDA with Bigrams on BBC News. Clean, interpretable topics consistent with news categories.
+                </p>
+            </div>
+
+            <!-- Relation Extractor -->
+            <div class="card">
+                <div class="card-header">Relation Extractor</div>
+                <div class="metric-value highlight-green">95.90%</div>
+                <div class="metric-label">Mean Accuracy (5-Fold CV)</div>
+                <div style="margin-top: 1rem;">
+                    <span class="status-exceeded">Target Exceeded (+7.7%)</span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+                    Dependency-based extraction with Random Forest. Excellent at identifying semantic relationships.
+                </p>
+            </div>
+        </div>
+
+        <!-- Detailed Methodology -->
+        <div class="section-card">
+            <h2>Methodology & Implementation</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h3>Cross-Validation Strategy</h3>
+                    <ul class="methodology">
+                        <li><strong>5-Fold Cross-Validation</strong>: Used for all models to ensure robustness and prevent overfitting.</li>
+                        <li><strong>Stratified Sampling</strong>: Ensured class balance in training/testing splits where applicable.</li>
+                        <li><strong>Document-Level Splits</strong>: For Keyphrase Extraction, splits were done by document ID to prevent data leakage.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Tuning & Optimization</h3>
+                    <ul class="methodology">
+                        <li><strong>Keyphrase Extractor</strong>: Enhanced with TF-IDF features, positional binning, and 1:1 negative sampling.</li>
+                        <li><strong>Topic Model</strong>: Utilized Bigrams (e.g., "prime_minister") and asymmetric priors for better topic coherence.</li>
+                        <li><strong>Relation Extractor</strong>: leveraged deep syntactic dependency parsing via SpaCy.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Results Tables -->
+        <h2 id="detailed-results">Detailed Results Breakdown</h2>
+
+        <!-- Text Classifier Details -->
+        <div class="section-card">
+            <h3>1. Text Classifier (Hybrid Random Forest)</h3>
+            <p><strong>Goal:</strong> Classify text as "Narrative" (Fairy Tales) or "Informational" (News).<br>
+            <strong>Target:</strong> 92.5% Accuracy</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fold</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1 Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>97.11%</td><td>97.15%</td><td>97.11%</td><td>97.12%</td></tr>
+                    <tr><td>2</td><td>94.75%</td><td>94.75%</td><td>94.75%</td><td>94.75%</td></tr>
+                    <tr><td>3</td><td>95.26%</td><td>95.27%</td><td>95.26%</td><td>95.26%</td></tr>
+                    <tr><td>4</td><td>97.37%</td><td>97.39%</td><td>97.37%</td><td>97.37%</td></tr>
+                    <tr><td>5</td><td>98.16%</td><td>98.17%</td><td>98.16%</td><td>98.16%</td></tr>
+                    <tr style="background-color: rgba(255,255,255,0.05); font-weight: bold;">
+                        <td>AVERAGE</td>
+                        <td class="highlight-blue">96.53%</td>
+                        <td>96.55%</td>
+                        <td>96.53%</td>
+                        <td>96.53%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Keyphrase Extractor Details -->
+        <div class="section-card">
+            <h3>2. Keyphrase Extractor (Gradient Boosting)</h3>
+            <p><strong>Goal:</strong> Extract keyphrases from 10 diverse datasets (Inspec, SemEval, PubMed, etc.).<br>
+            <strong>Note:</strong> Performance reflects a realistic multi-domain task.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fold</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1 Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>70.45%</td><td>73.29%</td><td>71.33%</td><td>72.30%</td></tr>
+                    <tr><td>2</td><td>70.96%</td><td>71.50%</td><td>74.63%</td><td>73.03%</td></tr>
+                    <tr><td>3</td><td>71.23%</td><td>72.21%</td><td>74.57%</td><td>73.37%</td></tr>
+                    <tr><td>4</td><td>70.64%</td><td>72.82%</td><td>72.86%</td><td>72.84%</td></tr>
+                    <tr><td>5</td><td>70.67%</td><td>71.39%</td><td>74.02%</td><td>72.68%</td></tr>
+                    <tr style="background-color: rgba(255,255,255,0.05); font-weight: bold;">
+                        <td>AVERAGE</td>
+                        <td>70.79%</td>
+                        <td>72.24%</td>
+                        <td class="highlight-purple">73.48%</td>
+                        <td class="highlight-purple">72.84%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Topic Model Details -->
+        <div class="section-card">
+            <h3>3. Topic Model (LDA with Bigrams)</h3>
+            <p><strong>Goal:</strong> Discover coherent topics in BBC News articles.<br>
+            <strong>Metric:</strong> c_v Coherence (Higher is better, standard range 0.4-0.65)</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fold</th>
+                        <th>Train Perplexity</th>
+                        <th>Test Perplexity</th>
+                        <th>Coherence Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>1308.33</td><td>2672.29</td><td>0.5440</td></tr>
+                    <tr><td>2</td><td>1330.51</td><td>2736.60</td><td>0.5034</td></tr>
+                    <tr><td>3</td><td>1296.13</td><td>2629.06</td><td>0.5140</td></tr>
+                    <tr><td>4</td><td>1333.01</td><td>2737.90</td><td>0.5502</td></tr>
+                    <tr><td>5</td><td>1289.66</td><td>2609.07</td><td>0.5175</td></tr>
+                    <tr style="background-color: rgba(255,255,255,0.05); font-weight: bold;">
+                        <td>AVERAGE</td>
+                        <td>1311.53</td>
+                        <td>2676.98</td>
+                        <td class="highlight-blue">0.5258</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Relation Extractor Details -->
+        <div class="section-card">
+            <h3>4. Relation Extractor (Dependency-Based)</h3>
+            <p><strong>Goal:</strong> Classify relationship types between entities.<br>
+            <strong>Target:</strong> 88.2% Accuracy</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fold</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1 Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>96.21%</td><td>96.99%</td><td>96.21%</td><td>96.34%</td></tr>
+                    <tr><td>2</td><td>95.82%</td><td>96.89%</td><td>95.82%</td><td>96.13%</td></tr>
+                    <tr><td>3</td><td>95.59%</td><td>97.00%</td><td>95.59%</td><td>96.01%</td></tr>
+                    <tr><td>4</td><td>96.44%</td><td>97.79%</td><td>96.44%</td><td>96.93%</td></tr>
+                    <tr><td>5</td><td>95.43%</td><td>96.35%</td><td>95.43%</td><td>95.67%</td></tr>
+                    <tr style="background-color: rgba(255,255,255,0.05); font-weight: bold;">
+                        <td>AVERAGE</td>
+                        <td class="highlight-green">95.90%</td>
+                        <td>97.00%</td>
+                        <td>95.90%</td>
+                        <td>96.22%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>

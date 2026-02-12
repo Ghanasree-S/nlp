@@ -3,7 +3,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Eye,
   BookOpen,
@@ -31,8 +31,9 @@ import {
   Zap
 } from 'lucide-react';
 import { Button } from './components/Button';
+import D3MindMap from './components/D3MindMap';
 import { analyzeText, generatePanelImage } from './services/geminiService';
-import { AppView, OutputMode, ProcessStatus, ComicPanel, AnalysisResult } from './types';
+import { AppView, ProcessStatus, ComicPanel, AnalysisResult } from './types';
 
 // --- Shared Components ---
 
@@ -236,7 +237,7 @@ const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto'
                 <Palette size={16} />
                 <span className="text-xs font-bold uppercase tracking-widest">Visual Style</span>
               </div>
-              <select className="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500">
+              <select aria-label="Visual style selection" className="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500">
                 <option>Digital Illustration</option>
                 <option>Manga / Noir</option>
                 <option>Oil Painting</option>
@@ -266,87 +267,6 @@ const ResultsPage = ({ status, result, panels, onReset }: {
   onReset: () => void
 }) => {
   const [activeTab, setActiveTab] = useState<'output' | 'pipeline'>('output');
-  const [zoom, setZoom] = useState(1);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-
-  const mindmapNodes = useMemo(() => {
-    if (!result?.mindMapData) return [];
-    const nodes = result.mindMapData.nodes;
-
-    // If backend provides positions, use them directly
-    const hasPositions = nodes.some((n: any) => n.x !== undefined && n.y !== undefined);
-    if (hasPositions) {
-      return nodes.map((n: any) => ({
-        ...n,
-        x: n.x || 600,
-        y: n.y || 350
-      }));
-    }
-
-    // Fallback: calculate positions if backend doesn't provide them
-    const cx = 600;
-    const cy = 350;
-    const r1 = 180;
-    const r2 = 320;
-
-    const categoryNodes = nodes.filter((n: any) => n.nodeType === 'category' || n.level === 1);
-    const detailNodes = nodes.filter((n: any) => n.nodeType === 'detail' || n.level === 2);
-
-    return nodes.map((n: any) => {
-      // Main node at center
-      if (n.nodeType === 'main' || n.level === 0 || n.type === 'topic') {
-        return { ...n, x: cx, y: cy };
-      }
-
-      // Category nodes around center
-      if (n.nodeType === 'category' || n.level === 1) {
-        const catIdx = parseInt(n.id?.replace('cat_', '') || '0');
-        const total = categoryNodes.length;
-        const angle = (2 * Math.PI * catIdx / total) - (Math.PI / 2);
-        return {
-          ...n,
-          x: cx + r1 * Math.cos(angle),
-          y: cy + r1 * Math.sin(angle)
-        };
-      }
-
-      // Detail nodes
-      if (n.id?.startsWith('det_') || n.level === 2) {
-        const parts = n.id.split('_');
-        const catIdx = parseInt(parts[1] || '0');
-        const detIdx = parseInt(parts[2] || '0');
-
-        const total = categoryNodes.length || 4;
-        const catAngle = (2 * Math.PI * catIdx / total) - (Math.PI / 2);
-
-        const siblings = detailNodes.filter((d: any) => d.id?.startsWith(`det_${catIdx}_`));
-        const sibCount = siblings.length;
-
-        const arcSpread = Math.PI / 4;
-        let detAngle = catAngle;
-        if (sibCount > 1) {
-          const offset = (detIdx - (sibCount - 1) / 2) * (arcSpread / Math.max(sibCount - 1, 1));
-          detAngle = catAngle + offset;
-        }
-
-        return {
-          ...n,
-          x: cx + r2 * Math.cos(detAngle),
-          y: cy + r2 * Math.sin(detAngle)
-        };
-      }
-
-      return { ...n, x: n.x || cx, y: n.y || cy };
-    });
-  }, [result]);
-
-  const handleResetView = () => {
-    setZoom(1);
-    setPanOffset({ x: 0, y: 0 });
-  };
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 2));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
 
   if (status === 'analyzing' || status === 'generating') {
     return (
@@ -414,7 +334,7 @@ const ResultsPage = ({ status, result, panels, onReset }: {
       {activeTab === 'output' ? (
         <main>
           {result.mode === 'comic' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className={`grid grid-cols-1 ${panels.length === 1 ? '' : panels.length <= 4 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-10`}>
               {panels.map((panel, idx) => (
                 <div key={panel.id} className="group relative rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
                   <div className="aspect-square bg-zinc-100 dark:bg-zinc-900 relative">
@@ -504,154 +424,12 @@ const ResultsPage = ({ status, result, panels, onReset }: {
                 </div>
               )}
 
-              {/* Mindmap Visualization */}
-              <div className="rounded-[3rem] border-2 border-zinc-200 dark:border-zinc-800 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-zinc-900 dark:via-indigo-950 dark:to-purple-950 relative shadow-2xl" style={{ height: '800px', overflow: 'auto' }}>
-                {/* SVG-based mindmap - properly scaled */}
-                <svg
-                  className="w-full h-full"
-                  viewBox="0 0 3200 900"
-                  preserveAspectRatio="xMidYMid meet"
-                  style={{ transform: `scale(${zoom})`, transformOrigin: 'center', transition: 'transform 0.3s' }}
-                >
-                  <defs>
-                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.6" />
-                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                    </linearGradient>
-                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.2" />
-                    </filter>
-                  </defs>
-
-                  {/* Edges/Connections with curved paths */}
-                  {(() => {
-                    // Deduplicate edges - keep only unique from-to pairs
-                    const seenEdges = new Set<string>();
-                    const uniqueEdges = (result.mindMapData?.edges || []).filter(edge => {
-                      const key = `${edge.from}-${edge.to}`;
-                      if (seenEdges.has(key)) return false;
-                      seenEdges.add(key);
-                      return true;
-                    });
-
-                    return uniqueEdges.map((edge, i) => {
-                      const fromNode = mindmapNodes.find(n => n.id === edge.from);
-                      const toNode = mindmapNodes.find(n => n.id === edge.to);
-                      if (!fromNode || !toNode) return null;
-
-                      // Calculate curved path
-                      const midX = (fromNode.x + toNode.x) / 2;
-                      const midY = (fromNode.y + toNode.y) / 2;
-
-                      // Curve offset
-                      const dx = toNode.x - fromNode.x;
-                      const dy = toNode.y - fromNode.y;
-
-                      const ctrlX = midX - dy * 0.15;
-                      const ctrlY = midY + dx * 0.15;
-
-                      return (
-                        <g key={`${edge.from}-${edge.to}`}>
-                          {/* Curved path */}
-                          <path
-                            d={`M ${fromNode.x} ${fromNode.y} Q ${ctrlX} ${ctrlY} ${toNode.x} ${toNode.y}`}
-                            stroke="url(#lineGrad)"
-                            strokeWidth="3"
-                            fill="none"
-                            strokeLinecap="round"
-                          />
-                          {/* Relationship label */}
-                          {edge.label && (
-                            <text
-                              x={midX}
-                              y={midY - 10}
-                              textAnchor="middle"
-                              fontSize="10"
-                              fill="#6366f1"
-                              fontStyle="italic"
-                            >
-                              {edge.label}
-                            </text>
-                          )}
-                        </g>
-                      );
-                    });
-                  })()}
-
-                  {/* Nodes */}
-                  {mindmapNodes.map((node: any, i) => {
-                    const nodeType = node.nodeType || (node.type === 'topic' ? 'main' : 'detail');
-                    const isMain = nodeType === 'main';
-                    const isCat = nodeType === 'category';
-
-                    // Node dimensions
-                    const width = isMain ? 180 : isCat ? 150 : 120;
-                    const height = isMain ? 60 : isCat ? 45 : 35;
-                    const rx = height / 2; // Rounded corners
-
-                    // Colors
-                    const fill = isMain ? '#6366f1' : isCat ? '#8b5cf6' : '#ffffff';
-                    const stroke = isMain ? '#4f46e5' : isCat ? '#7c3aed' : '#06b6d4';
-                    const textColor = isMain || isCat ? '#ffffff' : '#1f2937';
-                    const fontSize = isMain ? 16 : isCat ? 14 : 12;
-
-                    return (
-                      <g key={node.id} filter="url(#shadow)">
-                        {/* Node background */}
-                        <rect
-                          x={node.x - width / 2}
-                          y={node.y - height / 2}
-                          width={width}
-                          height={height}
-                          rx={rx}
-                          fill={fill}
-                          stroke={stroke}
-                          strokeWidth="2"
-                        />
-                        {/* Node text */}
-                        <text
-                          x={node.x}
-                          y={node.y}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fill={textColor}
-                          fontSize={fontSize}
-                          fontWeight="bold"
-                          fontFamily="system-ui, sans-serif"
-                        >
-                          {node.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {/* Controls */}
-                <div className="absolute bottom-6 right-6 flex gap-2 p-3 bg-white/95 dark:bg-black/95 backdrop-blur-xl rounded-2xl border border-zinc-200 dark:border-zinc-700 z-40 shadow-lg">
-                  <Button size="sm" variant="secondary" onClick={handleZoomOut}>−</Button>
-                  <Button size="sm" variant="secondary" onClick={handleResetView}>Reset</Button>
-                  <Button size="sm" variant="secondary" onClick={handleZoomIn}>+</Button>
-                </div>
-
-                <div className="absolute top-6 right-6 px-4 py-2 bg-white/95 dark:bg-black/95 backdrop-blur-xl rounded-full text-sm font-bold z-40 shadow">
-                  {Math.round(zoom * 100)}%
-                </div>
-
-                {/* Legend */}
-                <div className="absolute bottom-6 left-6 flex items-center gap-4 p-3 bg-white/95 dark:bg-black/95 backdrop-blur-xl rounded-xl text-xs z-40 shadow">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                    <span>Main</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                    <span>Category</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full border-2 border-cyan-400 bg-white"></div>
-                    <span>Detail</span>
-                  </div>
-                </div>
+              {/* D3.js Mindmap Visualization */}
+              <div className="rounded-[3rem] border-2 border-zinc-200 dark:border-zinc-800 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-zinc-900 dark:via-indigo-950 dark:to-purple-950 relative shadow-2xl" style={{ height: '800px', overflow: 'hidden' }}>
+                <D3MindMap
+                  nodes={result.mindMapData?.nodes || []}
+                  edges={result.mindMapData?.edges || []}
+                />
               </div>
             </div>
           )}
@@ -883,7 +661,7 @@ export default function App() {
                   { label: '1. Preprocessing', icon: <FileText />, desc: 'Tokenization, POS tagging, Dependency parsing via SpaCy' },
                   { label: '2. Classification', icon: <Layers />, desc: 'LSTM-based Narrative vs Informational routing' },
                   { label: '3. Extraction', icon: <Search />, desc: 'NER, KeyBERT, and relation extraction modules' },
-                  { label: '4. Synthesis', icon: <Monitor />, desc: 'NetworkX graphs and comic panel generation' }
+                  { label: '4. Synthesis', icon: <Monitor />, desc: 'D3.js graphs and comic panel generation' }
                 ].map((block, i) => (
                   <div key={i} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-center">
                     <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
@@ -928,8 +706,7 @@ export default function App() {
                   <div>
                     <h4 className="text-xs font-bold text-zinc-400 mb-2">Visualization</h4>
                     <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
-                      <li>• NetworkX</li>
-                      <li>• PyVis</li>
+                      <li>• D3.js</li>
                       <li>• SVG</li>
                     </ul>
                   </div>
@@ -1068,7 +845,7 @@ export default function App() {
                   { stage: '3. Keyphrase Extraction', desc: 'NER, noun chunks, and dependency-based extraction identify key terms', file: 'nlp/keyphrase/keyphrase_extractor.py' },
                   { stage: '4. Topic Modeling', desc: 'LDA and semantic clustering group related concepts into categories', file: 'nlp/topic_model/topic_modeler.py' },
                   { stage: '5. Relation Extraction', desc: 'Subject-Verb-Object patterns extracted from dependency parse', file: 'nlp/relation/relation_extractor.py' },
-                  { stage: '6. Graph Construction', desc: 'NetworkX builds hierarchical 3-level graph structure', file: 'mindmap_gen/mindmap_generator.py' }
+                  { stage: '6. Graph Construction', desc: 'D3.js renders interactive hierarchical 3-level mindmap', file: 'components/D3MindMap.tsx' }
                 ].map((item, i) => (
                   <div key={i} className="p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center gap-6">
                     <div className="w-12 h-12 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-black text-lg">
@@ -1088,7 +865,7 @@ export default function App() {
             <section className="p-8 rounded-[2rem] bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
               <h3 className="text-2xl font-black mb-6 uppercase tracking-tight">NLP Libraries Used</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {['SpaCy', 'NLTK', 'Transformers', 'KeyBERT', 'Gensim', 'scikit-learn', 'NetworkX', 'PyVis'].map((lib, i) => (
+                {['SpaCy', 'NLTK', 'Transformers', 'KeyBERT', 'Gensim', 'scikit-learn', 'D3.js'].map((lib, i) => (
                   <div key={i} className="p-4 bg-white/10 rounded-xl text-center font-semibold backdrop-blur-sm">
                     {lib}
                   </div>
@@ -1187,13 +964,13 @@ export default function App() {
                   <li>FastAPI + Python</li>
                   <li>SpaCy + NLTK</li>
                   <li>React + TypeScript</li>
-                  <li>NetworkX + KeyBERT</li>
+                  <li>D3.js + KeyBERT</li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">Links</h4>
                 <ul className="space-y-2">
-                  <li><a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" className="text-sm text-zinc-500 hover:text-indigo-500 flex items-center gap-2"><Github size={16} /> GitHub Repo</a></li>
+                  <li><a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-indigo-500 flex items-center gap-2"><Github size={16} /> GitHub Repo</a></li>
                   <li><button onClick={() => setView('about')} className="text-sm text-zinc-500 hover:text-indigo-500">Documentation</button></li>
                   <li><button onClick={() => setView('nlp')} className="text-sm text-zinc-500 hover:text-indigo-500">NLP Pipeline</button></li>
                 </ul>
@@ -1202,7 +979,7 @@ export default function App() {
           </div>
           <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-zinc-400">© 2026 VisualVerse. Academic Project for NLP Course.</p>
-            <a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-indigo-500">
+            <a href="https://github.com/Ghanasree-S/VisualVerse" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-indigo-500">
               <Github size={16} /> View on GitHub
             </a>
           </div>
