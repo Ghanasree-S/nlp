@@ -75,6 +75,10 @@ class TrainingStatus(BaseModel):
     message: str
 
 
+class ImageRequest(BaseModel):
+    prompt: str
+
+
 # API Endpoints
 @app.get("/")
 async def root():
@@ -170,6 +174,24 @@ async def process_text(input_data: TextInput):
                 mindmap_data=mindmap["graph"]
             )
             
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/generate-image")
+async def generate_image(request: ImageRequest):
+    """Generate a comic panel image using DreamShaper via HF Inference API"""
+    try:
+        if comic_generator.use_placeholder:
+            raise HTTPException(
+                status_code=400,
+                detail="HF_API_TOKEN not configured. Add it to your .env file."
+            )
+        
+        image_url = comic_generator._call_dreamshaper(request.prompt)
+        return {"image_url": image_url}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

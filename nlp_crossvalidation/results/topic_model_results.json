@@ -1,0 +1,39 @@
+{
+  "fold_results": [
+    {
+      "fold": 1,
+      "train_perplexity": 1308.3256206247297,
+      "test_perplexity": 2672.2880658475506,
+      "coherence_score": 0.5439892407326224
+    },
+    {
+      "fold": 2,
+      "train_perplexity": 1330.5141722849492,
+      "test_perplexity": 2736.6033771932352,
+      "coherence_score": 0.5034088679627079
+    },
+    {
+      "fold": 3,
+      "train_perplexity": 1296.13468747658,
+      "test_perplexity": 2629.0587095665846,
+      "coherence_score": 0.5140338606304041
+    },
+    {
+      "fold": 4,
+      "train_perplexity": 1333.0126104539736,
+      "test_perplexity": 2737.895372858103,
+      "coherence_score": 0.5501603490604965
+    },
+    {
+      "fold": 5,
+      "train_perplexity": 1289.6606963491772,
+      "test_perplexity": 2609.0739260563023,
+      "coherence_score": 0.5174657400837603
+    }
+  ],
+  "avg_metrics": {
+    "coherence_score": 0.5258116116939983,
+    "train_perplexity": 1311.529557437882,
+    "test_perplexity": 2676.9838903043556
+  }
+}

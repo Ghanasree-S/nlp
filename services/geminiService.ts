@@ -60,6 +60,23 @@ export const analyzeText = async (
 };
 
 export const generatePanelImage = async (prompt: string): Promise<string> => {
+    // Call backend DreamShaper endpoint
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/generate-image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.image_url;
+        }
+    } catch (e) {
+        console.warn("DreamShaper API unavailable, using placeholder:", e);
+    }
+
+    // Fallback: SVG placeholder if backend is down or HF token not set
     const colors = ["#e94560", "#0f3460", "#533483", "#16213e"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
@@ -69,6 +86,5 @@ export const generatePanelImage = async (prompt: string): Promise<string> => {
     <text x="256" y="260" fill="white" font-size="16" text-anchor="middle" opacity="0.8">AI Generated Scene</text>
     <text x="256" y="300" fill="white" font-size="12" text-anchor="middle" opacity="0.6">${prompt.slice(0, 40)}...</text>
   </svg>`;
-    // Use encodeURIComponent for safe encoding (works with all characters)
     return `data:image/svg+xml,${encodeURIComponent(svg)}`
 };
