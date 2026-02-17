@@ -8,7 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import os
+import logging
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -51,12 +54,14 @@ mindmap_generator = MindMapGenerator()
 class TextInput(BaseModel):
     text: str
     mode: Optional[str] = "auto"  # "auto", "comic", "mindmap"
+    language: Optional[str] = "auto"  # "auto", "en", "hi", "ta"
 
 
 class ProcessingResult(BaseModel):
     mode: str  # "comic" or "mindmap"
     title: str
     summary: str
+    language: Optional[str] = "en"  # Detected/specified language
     comic_data: Optional[List[Dict[str, Any]]] = None
     mindmap_data: Optional[Dict[str, Any]] = None
 
@@ -99,6 +104,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
+        "supported_languages": ["en", "hi", "ta"],
         "models_loaded": {
             "preprocessor": preprocessor.is_ready(),
             "classifier": classifier.is_ready(),
@@ -113,8 +119,9 @@ async def health_check():
 async def classify_text(input_data: TextInput):
     """Classify text as narrative or informational"""
     try:
-        # Preprocess text
-        preprocessed = preprocessor.process(input_data.text)
+        # Preprocess text (with language detection)
+        lang = input_data.language if input_data.language != "auto" else None
+        preprocessed = preprocessor.process(input_data.text, language=lang)
         
         # Classify
         classification = classifier.classify(preprocessed)
@@ -122,7 +129,8 @@ async def classify_text(input_data: TextInput):
         return {
             "text_type": classification["type"],
             "confidence": classification["confidence"],
-            "features": classification["features"]
+            "features": classification["features"],
+            "language": preprocessed.get("language", "en")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -132,8 +140,10 @@ async def classify_text(input_data: TextInput):
 async def process_text(input_data: TextInput):
     """Main processing endpoint - converts text to comic or mindmap"""
     try:
-        # Step 1: Preprocess
-        preprocessed = preprocessor.process(input_data.text)
+        # Step 1: Preprocess (with language detection/selection)
+        lang = input_data.language if input_data.language != "auto" else None
+        preprocessed = preprocessor.process(input_data.text, language=lang)
+        detected_language = preprocessed.get("language", "en")
         
         # Step 2: Determine mode
         if input_data.mode == "auto":
@@ -149,6 +159,7 @@ async def process_text(input_data: TextInput):
                 mode="comic",
                 title=result["title"],
                 summary=result["summary"],
+                language=detected_language,
                 comic_data=result["panels"]
             )
         else:
@@ -171,6 +182,7 @@ async def process_text(input_data: TextInput):
                 mode="mindmap",
                 title=mindmap["title"],
                 summary=mindmap["summary"],
+                language=detected_language,
                 mindmap_data=mindmap["graph"]
             )
             
@@ -180,20 +192,21 @@ async def process_text(input_data: TextInput):
 
 @app.post("/api/generate-image")
 async def generate_image(request: ImageRequest):
-    """Generate a comic panel image using DreamShaper via HF Inference API"""
+    """Generate a comic panel image using Pollinations.ai (FLUX model, free)"""
     try:
-        if comic_generator.use_placeholder:
-            raise HTTPException(
-                status_code=400,
-                detail="HF_API_TOKEN not configured. Add it to your .env file."
-            )
-        
-        image_url = comic_generator._call_dreamshaper(request.prompt)
+        # Try Pollinations.ai first (free, no key needed)
+        image_url = comic_generator._call_pollinations(request.prompt)
         return {"image_url": image_url}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as poll_err:
+        logger.warning(f"Pollinations.ai failed: {poll_err}")
+        # Fallback to HF if token available
+        if comic_generator.hf_token:
+            try:
+                image_url = comic_generator._call_dreamshaper(request.prompt)
+                return {"image_url": image_url}
+            except Exception as hf_err:
+                raise HTTPException(status_code=500, detail=f"All image providers failed. Pollinations: {poll_err}, HF: {hf_err}")
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {poll_err}")
 
 
 @app.post("/api/train/{model_type}")

@@ -111,17 +111,21 @@ class TopicModeler:
         
         # Use lemmas from preprocessing (filtered, stopwords removed)
         lemmas = preprocessed.get("lemmas", [])
+        language = preprocessed.get("language", "en")
         
         # If no lemmas available, create from text
         if not lemmas and text:
-            # Fallback: simple tokenization
             import re
-            words = re.findall(r'\b[a-z]{3,}\b', text.lower())
+            if language in ["hi", "ta"]:
+                # Handle Devanagari/Tamil: split by spaces, filter short tokens
+                words = [w for w in text.split() if len(w) > 2]
+            else:
+                words = re.findall(r'\b[a-z]{3,}\b', text.lower())
             stopwords = {'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 
                         'have', 'has', 'had', 'do', 'does', 'did', 'and', 'or', 'but'}
             lemmas = [w for w in words if w not in stopwords]
         
-        if self._trained and self.lda_model is not None:
+        if self._trained and self.lda_model is not None and language == "en":
             return self._model_with_trained(text, sentences, lemmas, keyphrases)
         
         return self._model_statistical(text, sentences, lemmas, keyphrases)
@@ -243,16 +247,21 @@ class TopicModeler:
         }
     
     def _generate_topic_label(self, words: List[str]) -> str:
-        """Generate a human-readable label for a topic"""
+        """Generate a human-readable label for a topic (multilingual)"""
         if not words:
             return "General"
         
         # Use the most important word(s)
         if len(words) == 1:
-            return words[0].title()
+            # title() works fine for Latin scripts; for Devanagari/Tamil, just return as-is
+            w = words[0]
+            return w.title() if w.isascii() else w
         
         # Combine top words
-        return " & ".join([w.title() for w in words[:2]])
+        labels = []
+        for w in words[:2]:
+            labels.append(w.title() if w.isascii() else w)
+        return " & ".join(labels)
     
     def _assign_keyphrases_to_topics(self, keyphrases: List[Dict[str, Any]], 
                                      topics: List[Dict[str, Any]], 
@@ -335,11 +344,13 @@ class TopicModeler:
             return {"error": "No training data available"}
         
         # Create document-term matrix
+        # Use None for stop_words to support multilingual text
+        # (stopwords are already removed in the preprocessing step)
         self.vectorizer = CountVectorizer(
             max_df=0.95,
             min_df=2,
             max_features=1000,
-            stop_words='english'
+            stop_words=None
         )
         
         doc_term_matrix = self.vectorizer.fit_transform(documents)

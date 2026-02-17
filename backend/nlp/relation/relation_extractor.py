@@ -27,7 +27,7 @@ class RelationExtractor:
     VECTORIZER_PATH = "backend/models/relation_vectorizer.pkl"
     ENCODER_PATH = "backend/models/relation_encoder.pkl"
     
-    # Patterns for each relation type
+    # English relation patterns
     PATTERNS = {
         "IS_A": [r'\b(is a|is an|are|type of|kind of|form of|instance of)\b'],
         "PART_OF": [r'\b(part of|component|contains|includes|within|belongs to|consists of)\b'],
@@ -35,6 +35,26 @@ class RelationExtractor:
         "REQUIRES": [r'\b(requires|needs|depends|necessary|essential|must have)\b'],
         "CONTRASTS": [r'\b(vs|versus|unlike|differs|contrasts|but|however|while|whereas)\b'],
         "RELATES_TO": [r'\b(relates|connected|linked|associated|together|involves)\b']
+    }
+    
+    # Hindi relation patterns
+    PATTERNS_HI = {
+        "IS_A": [r'(\u090f\u0915 \u092a\u094d\u0930\u0915\u093e\u0930|\u0939\u0948|\u0939\u094b\u0924\u093e \u0939\u0948)'],  # एक प्रकार, है, होता है
+        "PART_OF": [r'(\u0915\u093e \u0939\u093f\u0938\u094d\u0938\u093e|\u092e\u0947\u0902 \u0936\u093e\u092e\u093f\u0932|\u0915\u093e \u0905\u0902\u0917)'],  # का हिस्सा, में शामिल, का अंग
+        "CAUSES": [r'(\u0915\u0947 \u0915\u093e\u0930\u0923|\u0938\u0947 \u0939\u094b\u0924\u093e|\u092a\u0930\u093f\u0923\u093e\u092e)'],  # के कारण, से होता, परिणाम
+        "REQUIRES": [r'(\u0915\u0940 \u0906\u0935\u0936\u094d\u092f\u0915\u0924\u093e|\u091c\u0930\u0942\u0930\u0940|\u0928\u093f\u0930\u094d\u092d\u0930)'],  # की आवश्यकता, जरूरी, निर्भर
+        "CONTRASTS": [r'(\u0932\u0947\u0915\u093f\u0928|\u092a\u0930\u0928\u094d\u0924\u0941|\u091c\u092c\u0915\u093f|\u0915\u0947 \u0935\u093f\u092a\u0930\u0940\u0924)'],  # लेकिन, परन्तु, जबकि, के विपरीत
+        "RELATES_TO": [r'(\u0938\u0947 \u091c\u0941\u0921\u093c\u093e|\u0938\u0902\u092c\u0902\u0927\u093f\u0924|\u0915\u0947 \u0938\u093e\u0925)'],  # से जुड़ा, संबंधित, के साथ
+    }
+    
+    # Tamil relation patterns
+    PATTERNS_TA = {
+        "IS_A": [r'(\u0B86\u0B95\u0BC1\u0BAE\u0BCD|\u0B8E\u0BA9\u0BCD\u0BAA\u0BA4\u0BC1|\u0B92\u0BB0\u0BC1 \u0BB5\u0B95\u0BC8)'],  # ஆகும், என்பது, ஒரு வகை
+        "PART_OF": [r'(\u0BAA\u0B95\u0BC1\u0BA4\u0BBF|\u0B89\u0BB3\u0BCD\u0BB3\u0B9F\u0B95\u0BCD\u0B95\u0BBF\u0BAF|\u0B85\u0B99\u0BCD\u0B95\u0BAE\u0BCD)'],  # பகுதி, உள்ளடக்கிய, அங்கம்
+        "CAUSES": [r'(\u0B95\u0BBE\u0BB0\u0BA3\u0BAE\u0BBE\u0B95|\u0BB5\u0BBF\u0BB3\u0BC8\u0BB5\u0BBF\u0B95\u0BCD\u0B95\u0BC1\u0BAE\u0BCD|\u0B89\u0BA3\u0BCD\u0B9F\u0BBE\u0B95\u0BCD\u0B95\u0BC1\u0BAE\u0BCD)'],  # காரணமாக, விளைவிக்கும், உண்டாக்கும்
+        "REQUIRES": [r'(\u0BA4\u0BC7\u0BB5\u0BC8|\u0B85\u0BB5\u0B9A\u0BBF\u0BAF\u0BAE\u0BCD|\u0BA8\u0BBF\u0BAA\u0BA8\u0BCD\u0BA4\u0BA9\u0BC8)'],  # தேவை, அவசியம், நிபந்தனை
+        "CONTRASTS": [r'(\u0B86\u0BA9\u0BBE\u0BB2\u0BCD|\u0BAE\u0BBE\u0BB1\u0BBE\u0B95|\u0BB5\u0BC7\u0BB1\u0BC1\u0BAA\u0B9F\u0BCD\u0B9F)'],  # ஆனால், மாறாக, வேறுபட்ட
+        "RELATES_TO": [r'(\u0BA4\u0BCA\u0B9F\u0BB0\u0BCD\u0BAA\u0BC1\u0B9F\u0BC8\u0BAF|\u0B89\u0B9F\u0BA9\u0BCD|\u0B9A\u0BAE\u0BCD\u0BAA\u0BA8\u0BCD\u0BA4\u0BAE\u0BBE\u0BA9)'],  # தொடர்புடைய, உடன், சம்பந்தமான
     }
     
     def __init__(self):
@@ -92,25 +112,35 @@ class RelationExtractor:
     def extract(self, preprocessed: Dict[str, Any], 
                 keyphrases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Extract relations between keyphrases
+        Extract relations between keyphrases (multilingual)
         
         Uses from preprocessed:
         - dependencies: Dependency parse (child, dep, head)
         - sentences: For context finding
         - original_text: For pattern matching
+        - language: Language code for pattern selection
         """
         text = preprocessed.get("original_text", "")
         sentences = preprocessed.get("sentences", [])
         dependencies = preprocessed.get("dependencies", [])
+        language = preprocessed.get("language", "en")
         
         if len(keyphrases) < 2:
             return []
         
         keyphrase_texts = [kp["phrase"] for kp in keyphrases]
         
-        if self._trained and self.model is not None:
+        # Select language-specific patterns
+        if language == "hi":
+            patterns = self.PATTERNS_HI
+        elif language == "ta":
+            patterns = self.PATTERNS_TA
+        else:
+            patterns = self.PATTERNS
+        
+        if self._trained and self.model is not None and language == "en":
             return self._extract_with_model(text, sentences, dependencies, keyphrase_texts)
-        return self._extract_pattern_based(text, sentences, dependencies, keyphrase_texts)
+        return self._extract_pattern_based(text, sentences, dependencies, keyphrase_texts, patterns)
     
     def _extract_with_model(self, text: str, sentences: List[str], 
                            dependencies: List[Dict],
@@ -160,10 +190,12 @@ class RelationExtractor:
     
     def _extract_pattern_based(self, text: str, sentences: List[str], 
                                dependencies: List[Dict],
-                               keyphrases: List[str]) -> List[Dict[str, Any]]:
-        """Pattern-based extraction using dependency paths"""
+                               keyphrases: List[str],
+                               patterns: Dict = None) -> List[Dict[str, Any]]:
+        """Pattern-based extraction using dependency paths (multilingual)"""
         relations = []
         text_lower = text.lower()
+        active_patterns = patterns or self.PATTERNS
         
         # Use dependency parse to find relations
         for dep in dependencies:
@@ -200,8 +232,8 @@ class RelationExtractor:
                     continue
                 
                 # Check patterns
-                for rel_type, patterns in self.PATTERNS.items():
-                    for pattern in patterns:
+                for rel_type, pats in active_patterns.items():
+                    for pattern in pats:
                         # Check if pattern exists between keyphrases
                         combined_pattern = f"{re.escape(kp1.lower())}.*{pattern}.*{re.escape(kp2.lower())}"
                         if re.search(combined_pattern, text_lower):
@@ -255,7 +287,7 @@ class RelationExtractor:
             labels.append(d["relation"])
         
         # TF-IDF features
-        self.vectorizer = TfidfVectorizer(max_features=200, stop_words='english')
+        self.vectorizer = TfidfVectorizer(max_features=200, stop_words=None)
         tfidf_features = self.vectorizer.fit_transform(sentences).toarray()
         
         # Pattern features

@@ -6,13 +6,17 @@ Generates comic strips from narrative text using story segmentation and image ge
 import os
 import base64
 import logging
+import urllib.parse
 from typing import Dict, Any, List
 import requests
 from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
-# Text-to-image models on Hugging Face (in priority order)
+# Pollinations.ai - Free image generation using FLUX model (no API key needed)
+POLLINATIONS_URL = "https://image.pollinations.ai/prompt"
+
+# Fallback: HuggingFace models (requires credits)
 HF_MODELS = [
     "stabilityai/stable-diffusion-xl-base-1.0",
     "black-forest-labs/FLUX.1-schnell",
@@ -22,20 +26,21 @@ HF_ROUTER_URL = "https://router.huggingface.co/hf-inference/models"
 
 class ComicGenerator:
     """
-    Comic Strip Generator using Stable Diffusion XL via Hugging Face Inference API
+    Comic Strip Generator using FLUX model via Pollinations.ai (free)
     
     Pipeline:
     1. Segment story into scenes/beats
     2. Extract characters and settings for each scene
-    3. Generate DreamShaper-style optimized prompts
-    4. Generate images via HF Inference API (SDXL / FLUX.1)
+    3. Generate optimized image prompts
+    4. Generate images via Pollinations.ai (FLUX model, free, no key needed)
     5. Combine panels into comic strip layout
     """
     
     def __init__(self):
         """Initialize the comic generator"""
         self.hf_token = os.getenv("HF_API_TOKEN", "")
-        self.use_placeholder = not bool(self.hf_token)
+        # Pollinations.ai is always available (no API key needed)
+        self.use_placeholder = False
         
     async def generate(self, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -106,28 +111,38 @@ class ComicGenerator:
         """
         Segment story into comic panels.
         
-        Panel count scales with input size:
+        Panel count scales dynamically with input size:
         - 1-2 sentences  → 1-2 panels (one per sentence)
-        - 3-5 sentences  → 3 panels
-        - 6-9 sentences  → 4 panels
-        - 10-15 sentences → 5-6 panels
-        - 16-24 sentences → 6-8 panels
-        - 25+ sentences  → 8-10 panels
+        - 3-4 sentences  → 3-4 panels
+        - 5-7 sentences  → 4-5 panels
+        - 8-12 sentences → 5-7 panels
+        - 13-20 sentences → 7-10 panels
+        - 21-30 sentences → 10-12 panels
+        - 31+ sentences  → 12-16 panels (capped)
+        
+        Roughly: ~1 panel per 2 sentences, min 1, max 16
         """
         n = len(sentences)
         
         if n <= 2:
-            num_panels = n
-        elif n <= 5:
-            num_panels = 3
-        elif n <= 9:
-            num_panels = 4
-        elif n <= 15:
-            num_panels = min(6, max(5, n // 3))
-        elif n <= 24:
-            num_panels = min(8, max(6, n // 3))
+            num_panels = max(1, n)
+        elif n <= 4:
+            num_panels = n  # 1 panel per sentence for short stories
+        elif n <= 7:
+            # ~1 panel per 1.5 sentences
+            num_panels = max(4, round(n / 1.5))
+        elif n <= 12:
+            # ~1 panel per 1.7 sentences
+            num_panels = max(5, round(n / 1.7))
+        elif n <= 20:
+            # ~1 panel per 2 sentences
+            num_panels = max(7, round(n / 2))
+        elif n <= 30:
+            # ~1 panel per 2.5 sentences
+            num_panels = max(10, round(n / 2.5))
         else:
-            num_panels = min(10, max(8, n // 4))
+            # ~1 panel per 3 sentences, capped at 16
+            num_panels = min(16, max(12, round(n / 3)))
         
         if len(sentences) < num_panels:
             # If too few sentences, use each sentence as a panel
@@ -225,17 +240,50 @@ class ComicGenerator:
     
     async def _generate_panel_image(self, panel: Dict[str, Any]) -> str:
         """
-        Generate image for a panel using DreamShaper via HF Inference API.
-        Falls back to SVG placeholder if API is unavailable.
+        Generate image for a panel.
+        Priority: Pollinations.ai (free FLUX) → HF API (if credits) → SVG placeholder
         """
-        if self.use_placeholder:
-            return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
-        
+        # Try Pollinations.ai first (free, uses FLUX model)
         try:
-            return self._call_dreamshaper(panel["prompt"])
+            return self._call_pollinations(panel["prompt"])
         except Exception as e:
-            logger.warning(f"DreamShaper API failed for panel {panel['panel_number']}: {e}")
-            return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
+            logger.warning(f"Pollinations.ai failed for panel {panel['panel_number']}: {e}")
+        
+        # Fallback to HF if token available
+        if self.hf_token:
+            try:
+                return self._call_dreamshaper(panel["prompt"])
+            except Exception as e:
+                logger.warning(f"HF API also failed for panel {panel['panel_number']}: {e}")
+        
+        # Last resort: SVG placeholder
+        return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
+    
+    def _call_pollinations(self, prompt: str) -> str:
+        """
+        Call Pollinations.ai free API (uses FLUX model).
+        No API key required. Returns base64-encoded PNG data URI.
+        """
+        # URL-encode the prompt
+        encoded_prompt = urllib.parse.quote(prompt)
+        url = f"{POLLINATIONS_URL}/{encoded_prompt}?width=512&height=512&model=flux&nologo=true&seed={hash(prompt) % 100000}"
+        
+        logger.info(f"Calling Pollinations.ai FLUX model...")
+        response = requests.get(url, timeout=120)
+        
+        if response.status_code == 200 and len(response.content) > 1000:
+            img_bytes = response.content
+            b64 = base64.b64encode(img_bytes).decode("utf-8")
+            # Detect content type from response headers
+            content_type = response.headers.get("content-type", "image/jpeg")
+            if "png" in content_type:
+                mime = "image/png"
+            else:
+                mime = "image/jpeg"
+            logger.info(f"Image generated successfully via Pollinations.ai (FLUX model)")
+            return f"data:{mime};base64,{b64}"
+        else:
+            raise RuntimeError(f"Pollinations.ai returned {response.status_code}, content length: {len(response.content)}")
     
     def _call_dreamshaper(self, prompt: str) -> str:
         """

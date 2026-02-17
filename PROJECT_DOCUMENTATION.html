@@ -826,12 +826,17 @@
             <div class="pipeline-step">
                 <div class="pipeline-title">Step 2: Text Classification</div>
                 <div class="pipeline-content">
-                    Extract features (pronouns, past tense, dialogue patterns) + TF-IDF → Random Forest Classifier →
+                    Extract 13 linguistic features (pronouns, filtered past tense, dialogue, explanation patterns, abbreviations) + TF-IDF → Random Forest Classifier →
                     Classify as Narrative or Informational
                 </div>
                 <div class="code-block">
-                    <code><span class="code-comment"># Classification Logic:</span>
-<span class="code-keyword">if</span> narrative_score > 0.5:
+                    <code><span class="code-comment"># Classification Features (13 total):</span>
+<span class="code-comment"># Narrative: pronouns, past_tense (filtered), dialogue, said_verbs, story_words</span>
+<span class="code-comment"># Informational: definitions, bullets, numbers, technical_words,</span>
+<span class="code-comment">#                explanation_patterns ("such as", "a subset of", etc.),</span>
+<span class="code-comment">#                abbreviation_patterns ("(ML)", "(AI)", etc.)</span>
+
+<span class="code-keyword">if</span> narrative_score > informational_score:
     <span class="code-keyword">return</span> <span class="code-string">"comic"</span>   <span class="code-comment"># → Route to Comic Generator</span>
 <span class="code-keyword">else</span>:
     <span class="code-keyword">return</span> <span class="code-string">"mindmap"</span> <span class="code-comment"># → Route to Mind-Map Generator</span></code>
@@ -1105,11 +1110,11 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
             <div class="card metric-card"
                 style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
                 <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Text Classifier</div>
-                <div class="metric-value">92.5%</div>
-                <div class="metric-label">Accuracy</div>
+                <div class="metric-value">96.5%</div>
+                <div class="metric-label">Accuracy (5-Fold CV)</div>
                 <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
                     <strong>Algorithm:</strong> Random Forest<br>
-                    <strong>Features:</strong> TF-IDF + Linguistic
+                    <strong>Features:</strong> TF-IDF + 13 Linguistic
                 </div>
             </div>
 
@@ -1117,22 +1122,22 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                 style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%); border: 1px solid rgba(139, 92, 246, 0.3);">
                 <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Keyphrase Extractor
                 </div>
-                <div class="metric-value">85.7%</div>
-                <div class="metric-label">F1 Score</div>
+                <div class="metric-value">72.8%</div>
+                <div class="metric-label">F1 Score (5-Fold CV)</div>
                 <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
                     <strong>Algorithm:</strong> Gradient Boosting<br>
-                    <strong>Precision:</strong> 82.3% | <strong>Recall:</strong> 89.4%
+                    <strong>Precision:</strong> 72.2% | <strong>Recall:</strong> 73.5%
                 </div>
             </div>
 
             <div class="card metric-card"
                 style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%); border: 1px solid rgba(6, 182, 212, 0.3);">
                 <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Topic Model</div>
-                <div class="metric-value">0.78</div>
-                <div class="metric-label">Coherence Score</div>
+                <div class="metric-value">0.526</div>
+                <div class="metric-label">Coherence (5-Fold CV)</div>
                 <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
                     <strong>Algorithm:</strong> LDA<br>
-                    <strong>Topics:</strong> 5 | <strong>Vocab:</strong> 1000
+                    <strong>Perplexity:</strong> 2677 (test)
                 </div>
             </div>
 
@@ -1140,11 +1145,11 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                 style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
                 <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Relation Extractor
                 </div>
-                <div class="metric-value">88.2%</div>
-                <div class="metric-label">Accuracy</div>
+                <div class="metric-value">95.9%</div>
+                <div class="metric-label">Accuracy (5-Fold CV)</div>
                 <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary);">
                     <strong>Algorithm:</strong> MLP Neural Net<br>
-                    <strong>Classes:</strong> 7 relation types
+                    <strong>F1 Score:</strong> 96.2%
                 </div>
             </div>
         </div>
@@ -1163,8 +1168,16 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                             <th>Value</th>
                         </tr>
                         <tr>
-                            <td><strong>Accuracy</strong></td>
-                            <td style="color: var(--success); font-weight: 600;">92.5%</td>
+                            <td><strong>Accuracy (5-Fold CV)</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">96.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Precision (5-Fold CV)</td>
+                            <td style="color: var(--success); font-weight: 600;">96.5%</td>
+                        </tr>
+                        <tr>
+                            <td>F1 Score (5-Fold CV)</td>
+                            <td style="color: var(--success); font-weight: 600;">96.5%</td>
                         </tr>
                         <tr>
                             <td>Training Algorithm</td>
@@ -1172,31 +1185,29 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                         </tr>
                         <tr>
                             <td>Features Used</td>
-                            <td>TF-IDF (500) + 11 Linguistic Features</td>
+                            <td>TF-IDF (500) + 13 Linguistic Features</td>
                         </tr>
                         <tr>
-                            <td>Train/Test Split</td>
-                            <td>80% / 20%</td>
+                            <td>Validation</td>
+                            <td>5-Fold Cross Validation</td>
                         </tr>
                         <tr>
                             <td>Training Data</td>
-                            <td>BBC News (100) + Fairy Tales (100)</td>
+                            <td>BBC News + Fairy Tales (380 per fold)</td>
                         </tr>
                         <tr>
-                            <td>Narrative Precision</td>
-                            <td>91.3%</td>
-                        </tr>
-                        <tr>
-                            <td>Informational Precision</td>
-                            <td>93.7%</td>
+                            <td>Best Fold Accuracy</td>
+                            <td>98.2% (Fold 5)</td>
                         </tr>
                     </table>
                 </div>
                 <div style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px;">
-                    <strong style="color: var(--primary);">Linguistic Features:</strong>
+                    <strong style="color: var(--primary);">13 Linguistic Features:</strong>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                        Pronoun ratio, Past tense ratio, Dialogue patterns, Said verbs, Story words, Definition
-                        patterns, Bullet/numbered patterns, Technical words, Avg sentence length
+                        Pronoun ratio, Filtered past tense ratio, Dialogue patterns, Said verbs, Story words,
+                        Definition patterns, Bullet/numbered patterns, Technical words, <strong>Explanation patterns</strong>
+                        ("such as", "a subset of", "focused on"), <strong>Abbreviation patterns</strong> ("(ML)", "(AI)"),
+                        Avg sentence length, Word count
                     </p>
                 </div>
             </div>
@@ -1210,16 +1221,20 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                             <th>Value</th>
                         </tr>
                         <tr>
-                            <td><strong>F1 Score</strong></td>
-                            <td style="color: var(--success); font-weight: 600;">85.7%</td>
+                            <td><strong>F1 Score (5-Fold CV)</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">72.8%</td>
                         </tr>
                         <tr>
-                            <td>Precision</td>
-                            <td>82.3%</td>
+                            <td>Precision (5-Fold CV)</td>
+                            <td>72.2%</td>
                         </tr>
                         <tr>
-                            <td>Recall</td>
-                            <td>89.4%</td>
+                            <td>Recall (5-Fold CV)</td>
+                            <td>73.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Accuracy (5-Fold CV)</td>
+                            <td>70.8%</td>
                         </tr>
                         <tr>
                             <td>Training Algorithm</td>
@@ -1228,10 +1243,6 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                         <tr>
                             <td>Training Documents</td>
                             <td>200+ (Inspec dataset)</td>
-                        </tr>
-                        <tr>
-                            <td>Candidate Features</td>
-                            <td>Position, Frequency, Length, Capitalization</td>
                         </tr>
                         <tr>
                             <td>Matching Method</td>
@@ -1256,28 +1267,28 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                             <th>Value</th>
                         </tr>
                         <tr>
-                            <td><strong>Coherence Score</strong></td>
-                            <td style="color: var(--success); font-weight: 600;">0.78</td>
+                            <td><strong>Coherence Score (5-Fold CV)</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">0.526</td>
                         </tr>
                         <tr>
-                            <td>Perplexity</td>
-                            <td>Lower is better (model-dependent)</td>
+                            <td>Train Perplexity (Avg)</td>
+                            <td>1311.5</td>
+                        </tr>
+                        <tr>
+                            <td>Test Perplexity (Avg)</td>
+                            <td>2677.0</td>
+                        </tr>
+                        <tr>
+                            <td>Best Fold Coherence</td>
+                            <td>0.550 (Fold 4)</td>
                         </tr>
                         <tr>
                             <td>Number of Topics</td>
                             <td>5 (configurable)</td>
                         </tr>
                         <tr>
-                            <td>Vocabulary Size</td>
-                            <td>1000 terms</td>
-                        </tr>
-                        <tr>
                             <td>Training Algorithm</td>
                             <td>Latent Dirichlet Allocation</td>
-                        </tr>
-                        <tr>
-                            <td>Max Iterations</td>
-                            <td>20</td>
                         </tr>
                         <tr>
                             <td>Training Documents</td>
@@ -1288,8 +1299,8 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                 <div style="margin-top: 1rem; padding: 1rem; background: rgba(6, 182, 212, 0.1); border-radius: 8px;">
                     <strong style="color: var(--accent);">Topic Coherence:</strong>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                        Measures word co-occurrence within topics. Higher = more interpretable topics. Score 0.78
-                        indicates strong semantic clustering.
+                        Measures word co-occurrence within topics. Higher = more interpretable topics. Score 0.526
+                        from 5-fold cross-validation indicates moderate semantic clustering with room for improvement.
                     </p>
                 </div>
             </div>
@@ -1303,16 +1314,24 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                             <th>Value</th>
                         </tr>
                         <tr>
-                            <td><strong>Accuracy</strong></td>
-                            <td style="color: var(--success); font-weight: 600;">88.2%</td>
+                            <td><strong>Accuracy (5-Fold CV)</strong></td>
+                            <td style="color: var(--success); font-weight: 600;">95.9%</td>
+                        </tr>
+                        <tr>
+                            <td>Precision (5-Fold CV)</td>
+                            <td>97.0%</td>
+                        </tr>
+                        <tr>
+                            <td>Recall (5-Fold CV)</td>
+                            <td>95.9%</td>
+                        </tr>
+                        <tr>
+                            <td>F1 Score (5-Fold CV)</td>
+                            <td>96.2%</td>
                         </tr>
                         <tr>
                             <td>Training Algorithm</td>
                             <td>MLP Neural Network (100, 50)</td>
-                        </tr>
-                        <tr>
-                            <td>Training Examples</td>
-                            <td>105+ (15 per class)</td>
                         </tr>
                         <tr>
                             <td>Relation Types</td>
@@ -1321,14 +1340,6 @@ relation = model.predict([features])  <span class="code-comment"># IS_A, CAUSES,
                         <tr>
                             <td>Features</td>
                             <td>TF-IDF (200) + Pattern (6)</td>
-                        </tr>
-                        <tr>
-                            <td>Max Iterations</td>
-                            <td>500</td>
-                        </tr>
-                        <tr>
-                            <td>Train/Test Split</td>
-                            <td>80% / 20%</td>
                         </tr>
                     </table>
                 </div>

@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   Eye,
   BookOpen,
@@ -178,9 +180,10 @@ const LandingPage = ({ setView }: { setView: (v: AppView) => void }) => (
   </div>
 );
 
-const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto' | 'comic' | 'mindmap') => void }) => {
+const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto' | 'comic' | 'mindmap', language: 'auto' | 'en' | 'hi' | 'ta') => void }) => {
   const [text, setText] = useState('');
   const [mode, setMode] = useState<'auto' | 'comic' | 'mindmap'>('auto');
+  const [language, setLanguage] = useState<'auto' | 'en' | 'hi' | 'ta'>('auto');
 
   return (
     <div className="animate-fade-in max-w-6xl mx-auto px-6 py-12">
@@ -244,13 +247,31 @@ const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto'
                 <option>Technical Schematic</option>
               </select>
             </div>
+
+            <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-2 mb-4 text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+                <span className="text-xs font-bold uppercase tracking-widest">Language</span>
+              </div>
+              <select
+                aria-label="Language selection"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as any)}
+                className="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="auto">🌐 Auto Detect</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+              </select>
+            </div>
           </div>
 
           <Button
             size="lg"
             className="w-full h-16 text-xl rounded-2xl"
             disabled={!text.trim()}
-            onClick={() => onGenerate(text, mode)}
+            onClick={() => onGenerate(text, mode, language)}
           >
             Start Visualization
           </Button>
@@ -267,6 +288,65 @@ const ResultsPage = ({ status, result, panels, onReset }: {
   onReset: () => void
 }) => {
   const [activeTab, setActiveTab] = useState<'output' | 'pipeline'>('output');
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  // PDF Export Function
+  const exportToPDF = async () => {
+    if (!result) return;
+    
+    setIsExportingPDF(true);
+    try {
+      const element = document.getElementById('export-content');
+      if (!element) {
+        console.error('Export content element not found');
+        return;
+      }
+
+      // Capture the content as canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: isDark ? '#09090b' : '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: result.mode === 'comic' ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 10;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is tall
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Download the PDF
+      const filename = `${result.mode}-${result.title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
 
   if (status === 'analyzing' || status === 'generating') {
     return (
@@ -327,14 +407,28 @@ const ResultsPage = ({ status, result, panels, onReset }: {
               NLP Insights
             </button>
           </div>
-          <Button variant="outline" size="sm" icon={<Download size={16} />}>Export PDF</Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            icon={isExportingPDF ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            onClick={exportToPDF}
+            disabled={isExportingPDF}
+          >
+            {isExportingPDF ? 'Exporting...' : 'Export PDF'}
+          </Button>
         </div>
       </header>
 
       {activeTab === 'output' ? (
-        <main>
+        <main id="export-content">
           {result.mode === 'comic' ? (
-            <div className={`grid grid-cols-1 ${panels.length === 1 ? '' : panels.length <= 4 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-10`}>
+            <div className={`grid grid-cols-1 ${
+              panels.length === 1 ? '' 
+              : panels.length === 2 ? 'lg:grid-cols-2' 
+              : panels.length <= 4 ? 'md:grid-cols-2' 
+              : panels.length <= 9 ? 'md:grid-cols-2 lg:grid-cols-3' 
+              : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            } gap-8`}>
               {panels.map((panel, idx) => (
                 <div key={panel.id} className="group relative rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
                   <div className="aspect-square bg-zinc-100 dark:bg-zinc-900 relative">
@@ -518,12 +612,12 @@ export default function App() {
     document.documentElement.classList.toggle('dark', next === 'dark');
   };
 
-  const handleGenerate = async (text: string, mode: 'auto' | 'comic' | 'mindmap') => {
+  const handleGenerate = async (text: string, mode: 'auto' | 'comic' | 'mindmap', language: 'auto' | 'en' | 'hi' | 'ta' = 'auto') => {
     setStatus('analyzing');
     setView('results');
 
     try {
-      const analysis = await analyzeText(text, mode);
+      const analysis = await analyzeText(text, mode, language);
       setResult(analysis);
 
       if (analysis.mode === 'comic' && analysis.comicData) {

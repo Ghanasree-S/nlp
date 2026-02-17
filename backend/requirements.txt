@@ -63,6 +63,7 @@ accelerate==0.25.0
 # ============================================
 # Utilities
 # ============================================
+langdetect==1.0.9        # Multilingual language detection (Hindi, Tamil)
 datasets==2.16.1
 pandas==2.1.4
 numpy==1.26.3

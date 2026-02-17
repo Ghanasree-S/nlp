@@ -70,30 +70,63 @@ class TextClassifier:
         with open(self.VECTORIZER_PATH, 'wb') as f:
             pickle.dump(self.vectorizer, f)
     
-    def _extract_features(self, text: str) -> Dict[str, float]:
+    def _extract_features(self, text: str, language: str = "en") -> Dict[str, float]:
         """
-        Extract linguistic features for classification
+        Extract linguistic features for classification (multilingual)
         """
-        # Narrative indicators
+        word_count = len(text.split())
+        
+        if language == "hi":
+            return self._extract_features_hi(text, word_count)
+        elif language == "ta":
+            return self._extract_features_ta(text, word_count)
+        else:
+            return self._extract_features_en(text, word_count)
+    
+    def _extract_features_en(self, text: str, word_count: int) -> Dict[str, float]:
+        """English feature extraction"""
         narrative_pronouns = len(re.findall(r'\b(I|he|she|they|we|him|her|them|his|hers|their)\b', text, re.I))
-        past_tense_verbs = len(re.findall(r'\b\w+ed\b', text))
+        
+        all_ed_words = re.findall(r'\b\w+ed\b', text)
+        informational_participles = re.findall(
+            r'\b(focused|based|called|used|designed|programmed|improved|defined|'
+            r'applied|considered|known|related|described|compared|required|'
+            r'automated|powered|specialized|structured|classified|organized|'
+            r'developed|advanced|integrated|optimized|processed|generated|'
+            r'trained|learned|computed|predicted|clustered|labeled|named|'
+            r'proposed|published|implemented|recognized|connected|combined|'
+            r'associated|distributed|collected|measured|observed|examined|'
+            r'analyzed|derived|achieved|obtained|employed|adopted|constructed)\b',
+            text, re.I
+        )
+        past_tense_verbs = max(0, len(all_ed_words) - len(informational_participles))
+        
         dialogue_markers = len(re.findall(r'["\'].*?["\']', text))
         said_verbs = len(re.findall(r'\b(said|asked|replied|whispered|shouted|exclaimed|muttered)\b', text, re.I))
-        
-        # Story structure words
         story_words = len(re.findall(r'\b(once|then|suddenly|finally|afterwards|meanwhile|later)\b', text, re.I))
         
-        # Informational indicators
         definition_patterns = len(re.findall(r'\b(is|are|was|were|means|refers|defines|describes)\b', text, re.I))
         bullet_patterns = len(re.findall(r'^\s*[-•*]\s', text, re.M))
         numbered_patterns = len(re.findall(r'^\s*\d+[\.\)]\s', text, re.M))
-        technical_patterns = len(re.findall(r'\b(according|therefore|however|moreover|furthermore|thus|hence)\b', text, re.I))
+        technical_patterns = len(re.findall(
+            r'\b(according|therefore|however|moreover|furthermore|thus|hence|'
+            r'whereas|consequently|specifically|essentially|particularly|'
+            r'typically|generally|primarily|significantly|approximately)\b',
+            text, re.I
+        ))
+        explanation_patterns = len(re.findall(
+            r'\b(such as|for example|for instance|including|e\.g\.|i\.e\.|'
+            r'in other words|that is|refers to|known as|defined as|'
+            r'a type of|a form of|a kind of|a subset of|a branch of|'
+            r'consists of|involves|enables|allows|provides|facilitates|'
+            r'applications like|used for|used in|used to|designed to|'
+            r'focused on|based on|capable of|responsible for)\b',
+            text, re.I
+        ))
+        abbreviation_patterns = len(re.findall(r'\([A-Z]{2,}\)', text))
         
-        # Structural features
         sentences = text.split('.')
         avg_sentence_length = np.mean([len(s.split()) for s in sentences if s.strip()]) if sentences else 0
-        
-        word_count = len(text.split())
         
         return {
             "narrative_pronouns": narrative_pronouns / max(word_count, 1),
@@ -105,28 +138,123 @@ class TextClassifier:
             "bullet_patterns": bullet_patterns,
             "numbered_patterns": numbered_patterns,
             "technical_words_ratio": technical_patterns / max(word_count, 1),
+            "explanation_patterns": explanation_patterns / max(word_count, 1),
+            "abbreviation_patterns": abbreviation_patterns / max(word_count, 1),
+            "avg_sentence_length": avg_sentence_length,
+            "word_count": word_count
+        }
+    
+    def _extract_features_hi(self, text: str, word_count: int) -> Dict[str, float]:
+        """Hindi feature extraction"""
+        narrative_pronouns = len(re.findall(
+            r'(\u092e\u0948\u0902|\u0939\u092e|\u0924\u0941\u092e|\u0935\u0939|\u0935\u0947|\u0909\u0938\u0928\u0947|\u0909\u0938\u0915\u093e|\u0909\u0938\u0915\u0940|\u0909\u0928\u094d\u0939\u094b\u0902\u0928\u0947)', text
+        ))  # मैं, हम, तुम, वह, वे, उसने, उसका, उसकी, उन्होंने
+        
+        past_tense_verbs = len(re.findall(
+            r'(\u0925\u093e|\u0925\u0940|\u0925\u0947|\u0917\u092f\u093e|\u0917\u0908|\u0917\u090f|\u0906\u092f\u093e|\u0906\u0908|\u0906\u090f|\u0932\u093f\u092f\u093e|\u0926\u093f\u092f\u093e|\u0915\u093f\u092f\u093e)', text
+        ))  # था, थी, थे, गया, गई, गए, आया, आई, आए, लिया, दिया, किया
+        
+        story_words = len(re.findall(
+            r'(\u090f\u0915 \u092c\u093e\u0930|\u092b\u093f\u0930|\u0905\u091a\u093e\u0928\u0915|\u0924\u092d\u0940|\u0906\u0916\u093f\u0930\u0915\u093e\u0930|\u092a\u0939\u0932\u0947|\u092c\u093e\u0926 \u092e\u0947\u0902)', text
+        ))  # एक बार, फिर, अचानक, तभी, आखिरकार, पहले, बाद में
+        
+        dialogue_markers = len(re.findall(r'["\u201C\u201D].*?["\u201C\u201D]', text))
+        said_verbs = len(re.findall(
+            r'(\u092c\u094b\u0932\u093e|\u0915\u0939\u093e|\u092a\u0942\u091b\u093e|\u091a\u093f\u0932\u094d\u0932\u093e\u092f\u093e|\u0938\u0941\u0928\u093e\u092f\u093e)', text
+        ))  # बोला, कहा, पूछा, चिल्लाया, सुनाया
+        
+        definition_patterns = len(re.findall(
+            r'(\u0939\u0948|\u0939\u0948\u0902|\u0939\u094b\u0924\u093e \u0939\u0948|\u0915\u0939\u0924\u0947 \u0939\u0948\u0902|\u0906\u0927\u093e\u0930\u093f\u0924)', text
+        ))  # है, हैं, होता है, कहते हैं, आधारित
+        
+        technical_patterns = len(re.findall(
+            r'(\u0907\u0938\u0932\u093f\u090f|\u0909\u0926\u093e\u0939\u0930\u0923|\u0935\u093f\u0936\u0947\u0937|\u0938\u093e\u092e\u093e\u0928\u094d\u092f\u0924\u0903|\u092e\u0941\u0916\u094d\u092f)', text
+        ))  # इसलिए, उदाहरण, विशेष, सामान्यतः, मुख्य
+        
+        sentences = re.split(r'[\u0964\.]+', text)
+        avg_sentence_length = np.mean([len(s.split()) for s in sentences if s.strip()]) if sentences else 0
+        
+        return {
+            "narrative_pronouns": narrative_pronouns / max(word_count, 1),
+            "past_tense_ratio": past_tense_verbs / max(word_count, 1),
+            "dialogue_ratio": dialogue_markers / max(word_count, 1),
+            "said_verbs_ratio": said_verbs / max(word_count, 1),
+            "story_words_ratio": story_words / max(word_count, 1),
+            "definition_ratio": definition_patterns / max(word_count, 1),
+            "bullet_patterns": len(re.findall(r'^\s*[-\u2022*]\s', text, re.M)),
+            "numbered_patterns": len(re.findall(r'^\s*\d+[\.\)]\s', text, re.M)),
+            "technical_words_ratio": technical_patterns / max(word_count, 1),
+            "explanation_patterns": 0,
+            "abbreviation_patterns": len(re.findall(r'\([A-Z]{2,}\)', text)) / max(word_count, 1),
+            "avg_sentence_length": avg_sentence_length,
+            "word_count": word_count
+        }
+    
+    def _extract_features_ta(self, text: str, word_count: int) -> Dict[str, float]:
+        """Tamil feature extraction"""
+        narrative_pronouns = len(re.findall(
+            r'(\u0BA8\u0BBE\u0BA9\u0BCD|\u0BA8\u0BBE\u0BAE\u0BCD|\u0BA8\u0BC0|\u0B85\u0BB5\u0BA9\u0BCD|\u0B85\u0BB5\u0BB3\u0BCD|\u0B85\u0BB5\u0BB0\u0BCD|\u0B85\u0BB5\u0BB0\u0BCD\u0B95\u0BB3\u0BCD)', text
+        ))  # நான், நாம், நீ, அவன், அவள், அவர், அவர்கள்
+        
+        past_tense_verbs = len(re.findall(
+            r'(\u0BA9\u0BBE\u0BA9\u0BCD|\u0BA9\u0BBE\u0BB3\u0BCD|\u0BA9\u0BBE\u0BB0\u0BCD|\u0B9A\u0BC6\u0BA9\u0BCD\u0BB1\u0BBE\u0BA9\u0BCD|\u0BB5\u0BA8\u0BCD\u0BA4\u0BBE\u0BA9\u0BCD|\u0B87\u0BB0\u0BC1\u0BA8\u0BCD\u0BA4\u0BA4\u0BC1)', text
+        ))  # னான், னாள், னார், சென்றான், வந்தான், இருந்தது
+        
+        story_words = len(re.findall(
+            r'(\u0B92\u0BB0\u0BC1 \u0BA8\u0BBE\u0BB3\u0BCD|\u0BA4\u0BBF\u0B9F\u0BC0\u0BB0\u0BC6\u0BA9\u0BCD|\u0B85\u0BAA\u0BCD\u0BAA\u0BCB\u0BA4\u0BC1|\u0B87\u0BB1\u0BC1\u0BA4\u0BBF\u0BAF\u0BBF\u0BB2\u0BCD|\u0BAA\u0BBF\u0BA9\u0BCD\u0BA9\u0BB0\u0BCD)', text
+        ))  # ஒரு நாள், திடீரென், அப்போது, இறுதியில், பின்னர்
+        
+        dialogue_markers = len(re.findall(r'["\u201C\u201D].*?["\u201C\u201D]', text))
+        said_verbs = len(re.findall(
+            r'(\u0B9A\u0BCA\u0BA9\u0BCD\u0BA9\u0BBE\u0BB0\u0BCD|\u0B95\u0BC7\u0B9F\u0BCD\u0B9F\u0BBE\u0BB0\u0BCD|\u0B95\u0BC2\u0BB1\u0BBF\u0BA9\u0BBE\u0BB0\u0BCD)', text
+        ))  # சொன்னார், கேட்டார், கூறினார்
+        
+        definition_patterns = len(re.findall(
+            r'(\u0B86\u0B95\u0BC1\u0BAE\u0BCD|\u0B8E\u0BA9\u0BCD\u0BAA\u0BA4\u0BC1|\u0B89\u0BB3\u0BCD\u0BB3\u0BA4\u0BC1)', text
+        ))  # ஆகும், என்பது, உள்ளது
+        
+        technical_patterns = len(re.findall(
+            r'(\u0B8E\u0BA9\u0BB5\u0BC7|\u0B89\u0BA4\u0BBE\u0BB0\u0BA3\u0BAE\u0BBE\u0B95|\u0BAA\u0BCA\u0BA4\u0BC1\u0BB5\u0BBE\u0B95|\u0BAE\u0BC1\u0B95\u0BCD\u0B95\u0BBF\u0BAF\u0BAE\u0BBE\u0B95)', text
+        ))  # எனவே, உதாரணமாக, பொதுவாக, முக்கியமாக
+        
+        sentences = re.split(r'[\.\u0964]+', text)
+        avg_sentence_length = np.mean([len(s.split()) for s in sentences if s.strip()]) if sentences else 0
+        
+        return {
+            "narrative_pronouns": narrative_pronouns / max(word_count, 1),
+            "past_tense_ratio": past_tense_verbs / max(word_count, 1),
+            "dialogue_ratio": dialogue_markers / max(word_count, 1),
+            "said_verbs_ratio": said_verbs / max(word_count, 1),
+            "story_words_ratio": story_words / max(word_count, 1),
+            "definition_ratio": definition_patterns / max(word_count, 1),
+            "bullet_patterns": len(re.findall(r'^\s*[-\u2022*]\s', text, re.M)),
+            "numbered_patterns": len(re.findall(r'^\s*\d+[\.\)]\s', text, re.M)),
+            "technical_words_ratio": technical_patterns / max(word_count, 1),
+            "explanation_patterns": 0,
+            "abbreviation_patterns": len(re.findall(r'\([A-Z]{2,}\)', text)) / max(word_count, 1),
             "avg_sentence_length": avg_sentence_length,
             "word_count": word_count
         }
     
     def classify(self, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Classify text as narrative or informational
+        Classify text as narrative or informational (multilingual)
         
         Args:
             preprocessed: Output from TextPreprocessor.process()
         
         Returns:
-            Dict with type, confidence, and features
+            Dict with type, confidence, features, and language
         """
         text = preprocessed.get("original_text", preprocessed.get("cleaned_text", ""))
+        language = preprocessed.get("language", "en")
         
-        # If model is trained, use it
-        if self._trained and self.model is not None:
+        # If model is trained, use it (English model)
+        if self._trained and self.model is not None and language == "en":
             return self._classify_with_model(text)
         
-        # Otherwise use rule-based classification
-        return self._classify_rule_based(text, preprocessed)
+        # Otherwise use rule-based classification (works for all languages)
+        return self._classify_rule_based(text, preprocessed, language)
     
     def _classify_with_model(self, text: str) -> Dict[str, Any]:
         """Classify using trained model"""
@@ -152,12 +280,12 @@ class TextClassifier:
             "features": features
         }
     
-    def _classify_rule_based(self, text: str, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
+    def _classify_rule_based(self, text: str, preprocessed: Dict[str, Any], language: str = "en") -> Dict[str, Any]:
         """
         Rule-based classification when model is not trained
-        Uses heuristics based on linguistic features
+        Uses heuristics based on linguistic features (multilingual)
         """
-        features = self._extract_features(text)
+        features = self._extract_features(text, language)
         
         # Calculate narrative score
         narrative_score = (
@@ -173,7 +301,9 @@ class TextClassifier:
             features["definition_ratio"] * 15 +
             features["bullet_patterns"] * 5 +
             features["numbered_patterns"] * 5 +
-            features["technical_words_ratio"] * 20
+            features["technical_words_ratio"] * 20 +
+            features["explanation_patterns"] * 25 +
+            features["abbreviation_patterns"] * 15
         )
         
         # Check for characters (strong narrative indicator)

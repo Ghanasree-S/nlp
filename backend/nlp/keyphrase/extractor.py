@@ -56,7 +56,6 @@ class KeyphraseExtractor:
         'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through',
         'during', 'before', 'after', 'above', 'below', 'between', 'and',
         'but', 'or', 'this', 'that', 'these', 'those', 'it', 'its',
-        # Additional stopwords for cleaner mindmaps
         'also', 'just', 'only', 'even', 'such', 'very', 'too', 'much', 'many',
         'more', 'most', 'other', 'some', 'any', 'all', 'each', 'every', 'both',
         'few', 'than', 'them', 'they', 'their', 'them', 'we', 'you', 'our',
@@ -66,6 +65,27 @@ class KeyphraseExtractor:
         'unless', 'since', 'whether', 'either', 'neither', 'not', 'no', 'yes',
         'yet', 'still', 'already', 'always', 'never', 'often', 'sometimes',
         'fuelled', 'causing', 'cut', 'clear', 'rates', 'profit', 'alarming'
+    }
+    
+    # Hindi stopwords
+    STOPWORDS_HI = {
+        '\u0915\u093e', '\u0915\u0947', '\u0915\u0940', '\u0939\u0948', '\u092e\u0947\u0902',
+        '\u0915\u094b', '\u0938\u0947', '\u092a\u0930', '\u0914\u0930', '\u0928\u0947',
+        '\u092f\u0939', '\u0935\u0939', '\u0907\u0938', '\u0909\u0938', '\u090f\u0915',
+        '\u0928\u0939\u0940\u0902', '\u0925\u093e', '\u0925\u0940', '\u0925\u0947', '\u0939\u0948\u0902',
+        '\u092d\u0940', '\u0915\u093f', '\u091c\u094b', '\u0924\u094b', '\u0939\u094b',
+        '\u0915\u0930', '\u092f\u093e', '\u0905\u092a\u0928\u0947', '\u0905\u092a\u0928\u0940',
+        '\u0932\u093f\u090f', '\u0915\u0941\u091b', '\u0938\u093e\u0925',
+    }
+    
+    # Tamil stopwords
+    STOPWORDS_TA = {
+        '\u0B92\u0BB0\u0BC1', '\u0B87\u0BA8\u0BCD\u0BA4', '\u0B85\u0BA8\u0BCD\u0BA4',
+        '\u0B8E\u0BA9\u0BCD\u0BB1\u0BC1', '\u0B8E\u0BA9\u0BCD\u0BB1', '\u0B87\u0BA4\u0BC1',
+        '\u0B85\u0BA4\u0BC1', '\u0BAE\u0BB1\u0BCD\u0BB1\u0BC1\u0BAE\u0BCD',
+        '\u0B8E\u0BA9', '\u0B86\u0B95\u0BC1\u0BAE\u0BCD',
+        '\u0B89\u0BB3\u0BCD\u0BB3', '\u0B95\u0BCA\u0BA3\u0BCD\u0B9F',
+        '\u0BAA\u0BCB\u0BA4\u0BC1', '\u0B85\u0BB5\u0BB0\u0BCD',
     }
     
     # Common verb forms to filter out
@@ -364,6 +384,7 @@ class KeyphraseExtractor:
     def extract(self, preprocessed: Dict[str, Any], top_k: int = 10) -> List[Dict[str, Any]]:
         """
         Extract keyphrases using PREPROCESSED DATA from the preprocessing stage
+        Supports English, Hindi, and Tamil
         
         Uses from preprocessed:
         - entities: NER results (ORG, PRODUCT, GPE)
@@ -371,11 +392,21 @@ class KeyphraseExtractor:
         - nouns: NOUN/PROPN tokens (filtered by POS)
         - subjects: Words with nsubj dependency
         - original_text: For position/frequency features
+        - language: Language code for stopword selection
         """
         text = preprocessed.get("original_text", "")
+        language = preprocessed.get("language", "en")
+        
+        # Select appropriate stopwords
+        if language == "hi":
+            active_stopwords = self.STOPWORDS_HI
+        elif language == "ta":
+            active_stopwords = self.STOPWORDS_TA
+        else:
+            active_stopwords = self.STOPWORDS
         
         # Generate candidates FROM PREPROCESSED DATA
-        candidates, metadata = self._generate_candidates_from_preprocessed(preprocessed)
+        candidates, metadata = self._generate_candidates_from_preprocessed(preprocessed, active_stopwords)
         
         if not candidates:
             return []
@@ -383,13 +414,13 @@ class KeyphraseExtractor:
         # Store metadata for feature extraction
         self._candidate_metadata = metadata
         
-        if self._trained and self.model is not None:
+        if self._trained and self.model is not None and language == "en":
             return self._extract_with_model(text, candidates, top_k)
-        return self._extract_statistical(text, candidates, top_k)
+        return self._extract_statistical(text, candidates, top_k, language=language)
     
-    def _generate_candidates_from_preprocessed(self, preprocessed: Dict[str, Any]) -> Tuple[List[str], Dict]:
+    def _generate_candidates_from_preprocessed(self, preprocessed: Dict[str, Any], stopwords: set = None) -> Tuple[List[str], Dict]:
         """
-        Generate candidates using PREPROCESSED DATA
+        Generate candidates using PREPROCESSED DATA (multilingual)
         
         This properly uses the NLP outputs from preprocessing:
         1. Entities (from NER)
@@ -399,13 +430,18 @@ class KeyphraseExtractor:
         """
         candidates = {}
         text = preprocessed.get("original_text", "").lower()
+        language = preprocessed.get("language", "en")
+        sw = stopwords or self.STOPWORDS
+        
+        # Minimum length varies by script (Hindi/Tamil chars encode differently)
+        min_len = 2 if language in ["hi", "ta"] else 3
         
         # 1. FROM NER - Named Entities (ORG, PRODUCT, GPE, etc.)
         for entity in preprocessed.get("entities", []):
             phrase = entity.get("text", "").strip()
             label = entity.get("label", "")
-            if len(phrase) > 2 and phrase.lower() not in self.STOPWORDS:
-                if label in ['ORG', 'PRODUCT', 'GPE', 'WORK_OF_ART', 'LAW', 'EVENT']:
+            if len(phrase) > min_len and phrase.lower() not in sw:
+                if label in ['ORG', 'PRODUCT', 'GPE', 'WORK_OF_ART', 'LAW', 'EVENT', 'PER', 'LOC', 'MISC']:
                     candidates[phrase.lower()] = {
                         'original': phrase,
                         'source': 'NER',
@@ -422,8 +458,8 @@ class KeyphraseExtractor:
             words = phrase_lower.split()
             
             # Filter: remove if starts/ends with stopword
-            if words and words[0] not in self.STOPWORDS and words[-1] not in self.STOPWORDS:
-                if len(phrase) > 3 and phrase_lower not in self.STOPWORDS:
+            if words and words[0] not in sw and words[-1] not in sw:
+                if len(phrase) > min_len and phrase_lower not in sw:
                     if phrase_lower not in candidates:
                         candidates[phrase_lower] = {
                             'original': phrase,
@@ -441,7 +477,7 @@ class KeyphraseExtractor:
             phrase = noun.get("text", "").strip() if isinstance(noun, dict) else str(noun).strip()
             phrase_lower = phrase.lower()
             
-            if len(phrase) > 3 and phrase_lower not in self.STOPWORDS:
+            if len(phrase) > min_len and phrase_lower not in sw:
                 if phrase_lower not in candidates:
                     candidates[phrase_lower] = {
                         'original': phrase,
@@ -477,7 +513,7 @@ class KeyphraseExtractor:
         scored = sorted(zip(candidates, probs), key=lambda x: x[1], reverse=True)
         return [{"phrase": p, "score": float(s), "type": "concept"} for p, s in scored[:top_k]]
     
-    def _extract_statistical(self, text: str, candidates: List[str], top_k: int) -> List[Dict[str, Any]]:
+    def _extract_statistical(self, text: str, candidates: List[str], top_k: int, language: str = "en") -> List[Dict[str, Any]]:
         """Statistical fallback scoring when ML model not trained"""
         text_lower = text.lower()
         
@@ -487,22 +523,42 @@ class KeyphraseExtractor:
             pos = 1 - (text_lower.find(c.lower()) / max(len(text_lower), 1))
             word_count = len(c.split())
             
-            # Heavy boost for technical terms (capitalized, acronyms, special chars)
-            is_technical = any(char.isupper() for char in c) or '-' in c or '.' in c
-            technical_boost = 1.5 if is_technical else 0
+            if language in ["hi", "ta"]:
+                # For Hindi/Tamil: boost longer words (more meaningful), boost frequency
+                char_len = len(c)
+                length_boost = 0.5 if char_len > 4 else 0.2
+                
+                # Multi-word phrases are valuable in Hindi/Tamil
+                multi_word_boost = 0.6 if word_count > 1 else 0.3
+                
+                # Frequency is more important for non-English
+                freq_boost = freq * 0.5
+                
+                # First sentence boost - handle Hindi/Tamil sentence enders
+                import re as _re
+                first_sentence = _re.split(r'[।\.\?\!]', text_lower)[0] if text_lower else text_lower
+                in_first = 0.4 if c.lower() in first_sentence else 0
+                
+                score = freq_boost + pos * 0.2 + length_boost + multi_word_boost + in_first
+            else:
+                # English scoring (original logic)
+                # Heavy boost for technical terms (capitalized, acronyms, special chars)
+                is_technical = any(char.isupper() for char in c) or '-' in c or '.' in c
+                technical_boost = 1.5 if is_technical else 0
+                
+                # Prefer single words over multi-word phrases
+                single_word_boost = 0.8 if word_count == 1 else -0.3 * (word_count - 1)
+                
+                # Boost for terms in first sentence
+                first_sentence = text_lower.split('.')[0] if '.' in text_lower else text_lower
+                in_first = 0.3 if c.lower() in first_sentence else 0
+                
+                # Penalize common generic words
+                generic_words = ['data', 'application', 'system', 'technology', 'information']
+                is_generic = -0.5 if c.lower() in generic_words and word_count == 1 else 0
+                
+                score = freq * 0.3 + pos * 0.15 + technical_boost + single_word_boost + in_first + is_generic
             
-            # Prefer single words over multi-word phrases
-            single_word_boost = 0.8 if word_count == 1 else -0.3 * (word_count - 1)
-            
-            # Boost for terms in first sentence
-            first_sentence = text_lower.split('.')[0] if '.' in text_lower else text_lower
-            in_first = 0.3 if c.lower() in first_sentence else 0
-            
-            # Penalize common generic words
-            generic_words = ['data', 'application', 'system', 'technology', 'information']
-            is_generic = -0.5 if c.lower() in generic_words and word_count == 1 else 0
-            
-            score = freq * 0.3 + pos * 0.15 + technical_boost + single_word_boost + in_first + is_generic
             scored.append((c, score))
         
         scored.sort(key=lambda x: x[1], reverse=True)

@@ -112,6 +112,7 @@ class MindMapGenerator:
         """Clean and filter keyphrases"""
         main_topic_lower = main_topic.lower()
         main_words = set(main_topic_lower.split())
+        is_non_latin = not main_topic.isascii()
         cleaned = []
         seen = set()
         
@@ -131,13 +132,14 @@ class MindMapGenerator:
             if phrase_lower == main_topic_lower:
                 continue
             
-            # Skip if phrase is a subset of main topic or vice versa
-            if main_topic_lower in phrase_lower or phrase_lower in main_topic_lower:
-                # Exception: keep if it's a completely different phrase with one word overlap
-                phrase_words = set(phrase_lower.split())
-                overlap = len(main_words & phrase_words)
-                if overlap == len(phrase_words) or overlap == len(main_words):
-                    continue
+            # For non-Latin (Hindi/Tamil): be more lenient - only skip exact match
+            # For English: also skip subsets of main topic
+            if not is_non_latin:
+                if main_topic_lower in phrase_lower or phrase_lower in main_topic_lower:
+                    phrase_words = set(phrase_lower.split())
+                    overlap = len(main_words & phrase_words)
+                    if overlap == len(phrase_words) or overlap == len(main_words):
+                        continue
             
             # Skip duplicates
             if phrase_lower in seen:
@@ -190,11 +192,18 @@ class MindMapGenerator:
         # Dynamic limit based on keyphrases count
         max_categories = min(8, max(3, len(keyphrases) // 3))
         
+        # Check if text is non-Latin (Hindi/Tamil)
+        is_non_latin = original_text and not original_text[:20].isascii()
+        
         for phrase in keyphrases[:12]:
             phrase_words = phrase.lower().split()
-            # Only use 1-2 word phrases as categories
-            if len(phrase_words) <= 2 and len(categories) < max_categories:
-                capitalized = " ".join(word.capitalize() for word in phrase_words)
+            # For non-Latin: allow up to 3 word phrases as categories; for English: 1-2 words
+            max_cat_words = 3 if is_non_latin else 2
+            if len(phrase_words) <= max_cat_words and len(categories) < max_categories:
+                if is_non_latin:
+                    capitalized = phrase  # Don't capitalize non-Latin scripts
+                else:
+                    capitalized = " ".join(word.capitalize() for word in phrase_words)
                 # Check if not too similar to existing categories
                 is_duplicate = False
                 for existing_cat in categories:
@@ -321,21 +330,30 @@ class MindMapGenerator:
         if not text:
             return "Main Topic"
         
-        # Get first sentence
-        sentences = text.split('.')
-        first = sentences[0] if sentences else text
+        import re
+        # Split by common sentence delimiters (including Hindi danda ।)
+        sentences = re.split(r'[।\.\!\?\n]+', text)
+        first = sentences[0].strip() if sentences else text
         
-        # Common stopwords
+        # Common stopwords (multilingual)
         stops = {'the', 'a', 'an', 'is', 'are', 'and', 'or', 'of', 'to', 'in', 
-                'for', 'with', 'by', 'on', 'at', 'consists', 'that', 'this'}
+                'for', 'with', 'by', 'on', 'at', 'consists', 'that', 'this',
+                # Hindi
+                '\u0915\u093e', '\u0915\u0947', '\u0915\u0940', '\u0939\u0948', '\u092e\u0947\u0902', '\u0915\u094b', '\u0938\u0947', '\u0914\u0930', '\u090f\u0915',
+                # Tamil
+                '\u0B92\u0BB0\u0BC1', '\u0B87\u0BA8\u0BCD\u0BA4', '\u0B86\u0B95\u0BC1\u0BAE\u0BCD'}
         
         # Extract meaningful words
         words = []
         for w in first.split():
-            w_clean = w.strip('.,!?;:')
+            w_clean = w.strip('.,!?;:\u0964')  # Include danda in strip
             if w_clean.lower() not in stops and len(w_clean) > 2:
-                words.append(w_clean.capitalize())
-                if len(words) >= 2:
+                # For non-Latin: don't capitalize (no case concept)
+                if w_clean.isascii():
+                    words.append(w_clean.capitalize())
+                else:
+                    words.append(w_clean)
+                if len(words) >= 3:  # Allow 3 words for more context
                     break
         
         return " ".join(words) if words else "Main Topic"

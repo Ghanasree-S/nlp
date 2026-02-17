@@ -9,12 +9,13 @@ const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const analyzeText = async (
     text: string,
-    requestedMode: "auto" | "comic" | "mindmap"
+    requestedMode: "auto" | "comic" | "mindmap",
+    language: "auto" | "en" | "hi" | "ta" = "auto"
 ): Promise<AnalysisResult> => {
     const response = await fetch(`${BACKEND_URL}/api/process`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, mode: requestedMode }),
+        body: JSON.stringify({ text, mode: requestedMode, language }),
     });
 
     if (!response.ok) {
