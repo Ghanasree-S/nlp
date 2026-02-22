@@ -40,10 +40,19 @@ export interface MindMapData {
   edges: MindMapEdge[];
 }
 
+export interface ClassificationData {
+  text_type: string;
+  confidence: number;
+  features?: Record<string, any>;
+  language?: string;
+}
+
 export interface AnalysisResult {
   mode: OutputMode;
   title: string;
   summary: string;
+  language?: string;
+  classification?: ClassificationData;
   comicData?: ComicPanel[];
   mindMapData?: MindMapData;
 }

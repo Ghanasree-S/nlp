@@ -12,6 +12,26 @@ export const analyzeText = async (
     requestedMode: "auto" | "comic" | "mindmap",
     language: "auto" | "en" | "hi" | "ta" = "auto"
 ): Promise<AnalysisResult> => {
+    // First, get classification data if mode is auto
+    let classificationData = undefined;
+    
+    if (requestedMode === "auto") {
+        try {
+            const classifyResponse = await fetch(`${BACKEND_URL}/api/classify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, mode: requestedMode, language }),
+            });
+            
+            if (classifyResponse.ok) {
+                classificationData = await classifyResponse.json();
+            }
+        } catch (e) {
+            console.warn("Classification endpoint failed, proceeding with normal flow:", e);
+        }
+    }
+
+    // Now process the text normally
     const response = await fetch(`${BACKEND_URL}/api/process`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -29,6 +49,8 @@ export const analyzeText = async (
         mode: data.mode as "comic" | "mindmap",
         title: data.title || "Generated Content",
         summary: data.summary || "",
+        language: data.language || "en",
+        classification: classificationData,
         comicData: data.mode === "comic"
             ? (data.comic_data || []).map((p: any, i: number) => ({
                 id: String(i + 1),

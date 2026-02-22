@@ -302,6 +302,9 @@ const ResultsPage = ({ status, result, panels, onReset }: {
         return;
       }
 
+      // Detect dark mode from document
+      const isDark = document.documentElement.classList.contains('dark');
+
       // Capture the content as canvas
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -541,11 +544,27 @@ const ResultsPage = ({ status, result, panels, onReset }: {
                   </div>
                   <div className="flex justify-between items-center p-4 bg-white dark:bg-black rounded-xl">
                     <span className="text-sm font-bold">Confidence Score</span>
-                    <span className="text-xs font-black uppercase text-green-500">0.98</span>
+                    <span className="text-xs font-black uppercase text-green-500">
+                      {result.classification?.confidence 
+                        ? (result.classification.confidence * 100).toFixed(1) + '%'
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-white dark:bg-black rounded-xl">
+                    <span className="text-sm font-bold">Text Type</span>
+                    <span className="text-xs font-black uppercase text-purple-500">
+                      {result.classification?.text_type || (result.mode === 'comic' ? 'narrative' : 'informational')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-white dark:bg-black rounded-xl">
+                    <span className="text-sm font-bold">Language</span>
+                    <span className="text-xs font-black uppercase text-blue-500">
+                      {result.language === 'en' ? 'English' : result.language === 'hi' ? 'Hindi' : result.language === 'ta' ? 'Tamil' : result.language?.toUpperCase() || 'EN'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-white dark:bg-black rounded-xl">
                     <span className="text-sm font-bold">NLP Engine</span>
-                    <span className="text-xs font-black uppercase text-zinc-500">Gemini 3 Flash</span>
+                    <span className="text-xs font-black uppercase text-zinc-500">SpaCy + KeyBERT</span>
                   </div>
                 </div>
               </div>
