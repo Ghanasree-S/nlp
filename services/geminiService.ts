@@ -3,7 +3,7 @@
  * Uses FastAPI Backend - NO RATE LIMITS!
  */
 
-import { AnalysisResult } from "../types";
+import { AnalysisResult, StoryData } from "../types";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -56,6 +56,7 @@ export const analyzeText = async (
                 id: String(i + 1),
                 prompt: p.prompt || "",
                 caption: p.caption || "",
+                imageUrl: p.image_url || undefined,
             }))
             : undefined,
         mindMapData: data.mode === "mindmap"
@@ -110,4 +111,23 @@ export const generatePanelImage = async (prompt: string): Promise<string> => {
     <text x="256" y="300" fill="white" font-size="12" text-anchor="middle" opacity="0.6">${prompt.slice(0, 40)}...</text>
   </svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`
+};
+
+export const generateStory = async (
+    keywords: string[],
+    numSentences: number = 12,
+    language: string = "en"
+): Promise<StoryData> => {
+    const response = await fetch(`${BACKEND_URL}/api/generate-story`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords, num_sentences: numSentences, language }),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `Error: ${response.status}`);
+    }
+
+    return await response.json();
 };

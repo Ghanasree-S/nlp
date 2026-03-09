@@ -5,7 +5,7 @@
 
 export type AppView = 'landing' | 'workspace' | 'about' | 'future' | 'results' | 'nlp';
 
-export type OutputMode = 'comic' | 'mindmap';
+export type OutputMode = 'comic' | 'mindmap' | 'story';
 
 export type ProcessStatus = 'idle' | 'analyzing' | 'generating' | 'complete' | 'error';
 
@@ -47,6 +47,27 @@ export interface ClassificationData {
   language?: string;
 }
 
+export interface StoryPanel {
+  id: string;
+  panel_number: number;
+  caption: string;
+  prompt: string;
+  image_url?: string;
+}
+
+export interface StoryData {
+  title: string;
+  summary: string;
+  story: string;
+  panels: StoryPanel[];
+  keywords_used: string[];
+  nlp_info: {
+    technique: string;
+    corpus: string;
+    keyword_roles: Record<string, string>;
+  };
+}
+
 export interface AnalysisResult {
   mode: OutputMode;
   title: string;
@@ -55,4 +76,5 @@ export interface AnalysisResult {
   classification?: ClassificationData;
   comicData?: ComicPanel[];
   mindMapData?: MindMapData;
+  storyData?: StoryData;
 }

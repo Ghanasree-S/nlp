@@ -24,6 +24,7 @@ from nlp.topic_model.topic_modeler import TopicModeler
 from nlp.relation.relation_extractor import RelationExtractor
 from comic_gen.comic_generator import ComicGenerator
 from mindmap_gen.mindmap_generator import MindMapGenerator
+from story_gen.story_generator import StoryGenerator
 
 app = FastAPI(
     title="VisualVerse API",
@@ -48,13 +49,20 @@ topic_modeler = TopicModeler()
 relation_extractor = RelationExtractor()
 comic_generator = ComicGenerator()
 mindmap_generator = MindMapGenerator()
+story_generator = StoryGenerator()
 
 
 # Request/Response Models
 class TextInput(BaseModel):
     text: str
-    mode: Optional[str] = "auto"  # "auto", "comic", "mindmap"
+    mode: Optional[str] = "auto"  # "auto", "comic", "mindmap", "story"
     language: Optional[str] = "auto"  # "auto", "en", "hi", "ta"
+
+
+class StoryInput(BaseModel):
+    keywords: List[str]
+    num_sentences: Optional[int] = 12
+    language: Optional[str] = "en"
 
 
 class ProcessingResult(BaseModel):
@@ -163,8 +171,9 @@ async def process_text(input_data: TextInput):
                 comic_data=result["panels"]
             )
         else:
-            # Extract more keyphrases for better coverage (increased from 10 to 20)
-            keyphrases = keyphrase_extractor.extract(preprocessed, top_k=20)
+            # Fewer keyphrases for non-Latin to prevent cluttered maps
+            kp_count = 12 if detected_language in ('hi', 'ta') else 20
+            keyphrases = keyphrase_extractor.extract(preprocessed, top_k=kp_count)
             
             # Model topics
             topics = topic_modeler.model_topics(preprocessed, keyphrases)
@@ -205,8 +214,29 @@ async def generate_image(request: ImageRequest):
                 image_url = comic_generator._call_dreamshaper(request.prompt)
                 return {"image_url": image_url}
             except Exception as hf_err:
-                raise HTTPException(status_code=500, detail=f"All image providers failed. Pollinations: {poll_err}, HF: {hf_err}")
-        raise HTTPException(status_code=500, detail=f"Image generation failed: {poll_err}")
+                logger.warning(f"HF also failed: {hf_err}")
+        # Last resort: return SVG placeholder instead of 500 error
+        placeholder = comic_generator._get_placeholder_image(1, request.prompt[:60])
+        return {"image_url": placeholder}
+
+
+@app.post("/api/generate-story")
+async def generate_story(request: StoryInput):
+    """Generate a story from keywords using NLP (Markov Chain + POS tagging)"""
+    try:
+        if not request.keywords:
+            raise HTTPException(status_code=400, detail="At least one keyword is required")
+        result = story_generator.generate(
+            keywords=request.keywords,
+            num_sentences=request.num_sentences or 12,
+            language=request.language or "en",
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Story generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/train/{model_type}")

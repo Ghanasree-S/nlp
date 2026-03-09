@@ -34,8 +34,8 @@ import {
 } from 'lucide-react';
 import { Button } from './components/Button';
 import D3MindMap from './components/D3MindMap';
-import { analyzeText, generatePanelImage } from './services/geminiService';
-import { AppView, ProcessStatus, ComicPanel, AnalysisResult } from './types';
+import { analyzeText, generatePanelImage, generateStory } from './services/geminiService';
+import { AppView, ProcessStatus, ComicPanel, AnalysisResult, StoryData } from './types';
 
 // --- Shared Components ---
 
@@ -180,10 +180,27 @@ const LandingPage = ({ setView }: { setView: (v: AppView) => void }) => (
   </div>
 );
 
-const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto' | 'comic' | 'mindmap', language: 'auto' | 'en' | 'hi' | 'ta') => void }) => {
+const WorkspacePage = ({ onGenerate, onGenerateStory }: { 
+  onGenerate: (text: string, mode: 'auto' | 'comic' | 'mindmap', language: 'auto' | 'en' | 'hi' | 'ta') => void,
+  onGenerateStory: (keywords: string[]) => void 
+}) => {
   const [text, setText] = useState('');
-  const [mode, setMode] = useState<'auto' | 'comic' | 'mindmap'>('auto');
+  const [mode, setMode] = useState<'auto' | 'comic' | 'mindmap' | 'story'>('auto');
   const [language, setLanguage] = useState<'auto' | 'en' | 'hi' | 'ta'>('auto');
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState('');
+
+  const addKeyword = () => {
+    const kw = keywordInput.trim();
+    if (kw && !keywords.includes(kw) && keywords.length < 10) {
+      setKeywords([...keywords, kw]);
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (kw: string) => {
+    setKeywords(keywords.filter(k => k !== kw));
+  };
 
   return (
     <div className="animate-fade-in max-w-6xl mx-auto px-6 py-12">
@@ -191,19 +208,69 @@ const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto'
         <div className="flex-[2] space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-black dark:text-white uppercase tracking-tight">Project Studio</h1>
-            <Button variant="ghost" size="sm" onClick={() => setText('')} icon={<Trash2 size={16} />}>Clear Buffer</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setText(''); setKeywords([]); }} icon={<Trash2 size={16} />}>Clear Buffer</Button>
           </div>
-          <div className="relative group">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter a story (e.g. 'A lonely robot travels across a desert planet...') or a conceptual topic (e.g. 'The lifecycle of a star')..."
-              className="w-full h-[500px] p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 outline-none text-xl leading-relaxed resize-none dark:text-white transition-all shadow-inner"
-            />
-            <div className="absolute top-4 right-4 px-3 py-1 bg-white dark:bg-black rounded-full border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 font-bold uppercase tracking-widest pointer-events-none">
-              Input Buffer: {text.length} chars
+
+          {mode === 'story' ? (
+            /* Keyword input for story mode */
+            <div className="relative group">
+              <div className="w-full min-h-[500px] p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 focus-within:border-indigo-500 transition-all shadow-inner">
+                <div className="absolute top-4 right-4 px-3 py-1 bg-white dark:bg-black rounded-full border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 font-bold uppercase tracking-widest pointer-events-none">
+                  Keywords: {keywords.length} / 10
+                </div>
+
+                <h3 className="text-lg font-bold dark:text-white mb-2">Enter Keywords for Story</h3>
+                <p className="text-sm text-zinc-500 mb-6">Type a keyword and press Enter or click Add. The NLP engine will generate a fairy tale using Markov Chain language modeling.</p>
+
+                <div className="flex gap-3 mb-6">
+                  <input
+                    type="text"
+                    value={keywordInput}
+                    onChange={(e) => setKeywordInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addKeyword(); } }}
+                    placeholder="e.g. dragon, princess, forest..."
+                    className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-lg dark:text-white outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <button
+                    onClick={addKeyword}
+                    disabled={!keywordInput.trim()}
+                    className="px-6 py-3 rounded-xl bg-indigo-500 text-white font-bold text-sm uppercase tracking-wider disabled:opacity-30 hover:bg-indigo-600 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {keywords.map(kw => (
+                    <span key={kw} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-base font-semibold border border-indigo-500/20 group/chip">
+                      {kw}
+                      <button onClick={() => removeKeyword(kw)} className="w-5 h-5 rounded-full bg-indigo-500/20 dark:bg-indigo-500/30 flex items-center justify-center text-xs text-indigo-500 hover:bg-red-500 hover:text-white transition-colors">&times;</button>
+                    </span>
+                  ))}
+                  {keywords.length === 0 && (
+                    <div className="text-center w-full py-16 text-zinc-400">
+                      <Sparkles size={48} className="mx-auto mb-4 opacity-30" />
+                      <p className="text-lg font-medium">Add keywords to begin</p>
+                      <p className="text-sm mt-1">Try: dragon, castle, brave knight, magic sword</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Normal text input */
+            <div className="relative group">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Enter a story (e.g. 'A lonely robot travels across a desert planet...') or a conceptual topic (e.g. 'The lifecycle of a star')..."
+                className="w-full h-[500px] p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 outline-none text-xl leading-relaxed resize-none dark:text-white transition-all shadow-inner"
+              />
+              <div className="absolute top-4 right-4 px-3 py-1 bg-white dark:bg-black rounded-full border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 font-bold uppercase tracking-widest pointer-events-none">
+                Input Buffer: {text.length} chars
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 space-y-8">
@@ -214,6 +281,7 @@ const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto'
                 { id: 'auto', icon: <Eye size={18} />, label: 'Auto Classifier', sub: 'Neural Routing' },
                 { id: 'comic', icon: <BookOpen size={18} />, label: 'Comic Strip', sub: 'Narrative Pipeline' },
                 { id: 'mindmap', icon: <Network size={18} />, label: 'Mind-Map', sub: 'Conceptual Pipeline' },
+                { id: 'story', icon: <FileText size={18} />, label: 'Story Generator', sub: 'Keyword → Story' },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -270,10 +338,16 @@ const WorkspacePage = ({ onGenerate }: { onGenerate: (text: string, mode: 'auto'
           <Button
             size="lg"
             className="w-full h-16 text-xl rounded-2xl"
-            disabled={!text.trim()}
-            onClick={() => onGenerate(text, mode, language)}
+            disabled={mode === 'story' ? keywords.length === 0 : !text.trim()}
+            onClick={() => {
+              if (mode === 'story') {
+                onGenerateStory(keywords);
+              } else {
+                onGenerate(text, mode as 'auto' | 'comic' | 'mindmap', language);
+              }
+            }}
           >
-            Start Visualization
+            {mode === 'story' ? 'Generate Story' : 'Start Visualization'}
           </Button>
         </div>
       </div>
@@ -456,7 +530,7 @@ const ResultsPage = ({ status, result, panels, onReset }: {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : result.mode === 'mindmap' ? (
             <div className="space-y-6">
               {/* Extracted Keyphrases Section */}
               {result.mindMapData && result.mindMapData.nodes && (
@@ -521,15 +595,79 @@ const ResultsPage = ({ status, result, panels, onReset }: {
                 </div>
               )}
 
-              {/* D3.js Mindmap Visualization */}
-              <div className="rounded-[3rem] border-2 border-zinc-200 dark:border-zinc-800 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-zinc-900 dark:via-indigo-950 dark:to-purple-950 relative shadow-2xl" style={{ height: '800px', overflow: 'hidden' }}>
+              {/* D3.js Mindmap Visualization — breaks out of max-w-7xl to use full width */}
+              <div className="-mx-6 rounded-[2rem] border-2 border-zinc-200 dark:border-zinc-800 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-zinc-900 dark:via-indigo-950 dark:to-purple-950 relative shadow-2xl" style={{ height: '85vh', minHeight: '700px', overflow: 'hidden' }}>
                 <D3MindMap
                   nodes={result.mindMapData?.nodes || []}
                   edges={result.mindMapData?.edges || []}
                 />
               </div>
             </div>
-          )}
+          ) : result.mode === 'story' && result.storyData ? (
+            /* Story display */
+            (() => { const sd = result.storyData!; return (
+            <div className="space-y-8">
+              {/* NLP Info Banner */}
+              <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-2xl border border-indigo-500/20 p-6">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Cpu size={16} className="text-indigo-500" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-indigo-500">
+                      {sd.nlp_info.technique}
+                    </span>
+                  </div>
+                  <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                  <span className="text-xs text-zinc-500">Corpus: {sd.nlp_info.corpus}</span>
+                  <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                  <div className="flex flex-wrap gap-2">
+                    {sd.keywords_used.map(kw => (
+                      <span key={kw} className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-500/20">
+                        {kw}
+                        {sd.nlp_info.keyword_roles[kw] && (
+                          <span className="ml-1 text-[10px] text-zinc-400">({sd.nlp_info.keyword_roles[kw]})</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Story Text */}
+              <div className="bg-white dark:bg-zinc-950 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 px-10 py-6 border-b border-zinc-200 dark:border-zinc-800">
+                  <h2 className="text-2xl font-black dark:text-white tracking-tight font-serif">{sd.title}</h2>
+                  <p className="text-sm text-zinc-500 mt-1 italic">Generated using N-gram Markov Chain Language Model on Fairy Tales Corpus</p>
+                </div>
+                <div className="p-10">
+                  <p className="text-xl leading-[2] dark:text-zinc-300 font-serif text-zinc-700 whitespace-pre-wrap">
+                    {sd.story}
+                  </p>
+                </div>
+              </div>
+
+              {/* Story Panels */}
+              {sd.panels.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-black dark:text-white uppercase tracking-tight mb-4">Story Panels</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sd.panels.map((panel, idx) => (
+                      <div key={panel.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-lg">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2"></div>
+                        <div className="p-6">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center font-black text-sm">{idx + 1}</div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Panel {idx + 1}</span>
+                          </div>
+                          <p className="text-base leading-relaxed dark:text-zinc-300 font-serif italic text-zinc-700">"{panel.caption}"</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            ); })()
+          ) : null}
         </main>
       ) : (
         <main className="animate-slide-up">
@@ -631,6 +769,22 @@ export default function App() {
     document.documentElement.classList.toggle('dark', next === 'dark');
   };
 
+  /** Generate a colored SVG placeholder for panels that fail image generation */
+  const getFallbackImage = (panelId: string, caption: string): string => {
+    const colors = ['#6366f1', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+    const idx = parseInt(panelId.replace(/\D/g, ''), 10) || 0;
+    const color = colors[idx % colors.length];
+    const shortCaption = caption.length > 60 ? caption.slice(0, 57) + '...' : caption;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+      <rect width="512" height="512" fill="${color}" rx="12"/>
+      <rect x="8" y="8" width="496" height="496" fill="none" stroke="white" stroke-width="3" rx="8" opacity="0.3"/>
+      <text x="256" y="220" fill="white" font-size="42" text-anchor="middle" font-weight="bold">Panel ${idx}</text>
+      <text x="256" y="270" fill="white" font-size="14" text-anchor="middle" opacity="0.8">${shortCaption.replace(/["&<>]/g, '')}</text>
+      <text x="256" y="310" fill="white" font-size="11" text-anchor="middle" opacity="0.5">Image generation unavailable</text>
+    </svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  };
+
   const handleGenerate = async (text: string, mode: 'auto' | 'comic' | 'mindmap', language: 'auto' | 'en' | 'hi' | 'ta' = 'auto') => {
     setStatus('analyzing');
     setView('results');
@@ -642,20 +796,24 @@ export default function App() {
       if (analysis.mode === 'comic' && analysis.comicData) {
         setStatus('generating');
         const initialPanels = analysis.comicData;
-        setPanels(initialPanels);
+        // Show panels immediately with placeholders while images load
+        const panelsWithPlaceholders = initialPanels.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl || getFallbackImage(p.id, p.caption),
+        }));
+        setPanels(panelsWithPlaceholders);
 
-        const generated = await Promise.all(
-          initialPanels.map(async (p) => {
-            try {
-              const url = await generatePanelImage(p.prompt);
-              return { ...p, imageUrl: url };
-            } catch (e) {
-              console.error(e);
-              return p;
-            }
-          })
-        );
-        setPanels(generated);
+        // Generate images progressively — update each panel as its image arrives
+        initialPanels.forEach(async (p, idx) => {
+          if (p.imageUrl) return; // Already has image
+          try {
+            const url = await generatePanelImage(p.prompt);
+            setPanels(prev => prev.map((panel, i) => i === idx ? { ...panel, imageUrl: url } : panel));
+          } catch (e) {
+            console.error(`Image gen failed for panel ${p.id}:`, e);
+            // placeholder is already in place
+          }
+        });
       }
 
       setStatus('complete');
@@ -666,13 +824,34 @@ export default function App() {
     }
   };
 
+  const handleGenerateStory = async (keywords: string[]) => {
+    setStatus('analyzing');
+    setView('results');
+
+    try {
+      const storyData = await generateStory(keywords);
+      setResult({
+        mode: 'story',
+        title: storyData.title,
+        summary: storyData.summary,
+        language: 'en',
+        storyData,
+      });
+      setStatus('complete');
+    } catch (e: any) {
+      console.error(e);
+      setStatus('error');
+      alert(`Story Generation Fault: ${e.message}`);
+    }
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-500 font-sans ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-zinc-900'}`}>
       <Navbar currentView={view} setView={setView} theme={theme} toggleTheme={toggleTheme} />
 
       <main>
         {view === 'landing' && <LandingPage setView={setView} />}
-        {view === 'workspace' && <WorkspacePage onGenerate={handleGenerate} />}
+        {view === 'workspace' && <WorkspacePage onGenerate={handleGenerate} onGenerateStory={handleGenerateStory} />}
         {view === 'results' && <ResultsPage status={status} result={result} panels={panels} onReset={() => setView('workspace')} />}
 
         {view === 'about' && (

@@ -27,9 +27,19 @@ const BRANCH_COLORS = [
   { fill: '#3b82f6', stroke: '#2563eb', light: '#dbeafe' },  // Blue
 ];
 
-function truncate(text: string, maxChars: number) {
-  return text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
+/** Detect if a string contains non-Latin (Hindi/Tamil/etc.) characters */
+function isNonLatin(text: string): boolean {
+  return /[\u0900-\u097F\u0B80-\u0BFF]/.test(text);
 }
+
+function truncate(text: string, maxChars: number) {
+  // Non-Latin scripts: allow more chars since they are denser in meaning
+  const limit = isNonLatin(text) ? maxChars + 10 : maxChars;
+  return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
+}
+
+/** Font family string that supports Latin, Devanagari (Hindi) and Tamil scripts */
+const FONT_FAMILY = "'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Mangal', 'Latha', system-ui, -apple-system, sans-serif";
 
 /** Convert flat nodes + edges into a hierarchical tree for D3 */
 function buildTree(nodes: MindMapNode[], edges: MindMapEdge[]): TreeNode | null {
@@ -111,19 +121,26 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
 
     const root = d3.hierarchy<TreeNode>(treeData);
 
-    // Compute layout radius based on container
-    const radius = Math.min(width, height) / 2 - 80;
+    // Compute layout radius based on container — use the larger dimension
+    // so that wide screens spread nodes out horizontally
+    const totalLeaves = root.leaves().length;
+    const radius = Math.min(width, height) / 2 - 60 + Math.min(totalLeaves * 3, 80);
 
     // D3 tree layout in radial mode
+    // Scale separation dynamically: more leaves → more generous spacing
+    const leafFactor = Math.max(1, totalLeaves / 8);
     const treeLayout = d3.tree<TreeNode>()
       .size([2 * Math.PI, radius])
       .separation((a, b) => {
-        // Give more space between branches at root level
+        const aLeaf = !a.children || a.children.length === 0;
+        const bLeaf = !b.children || b.children.length === 0;
+
         if (a.parent === b.parent) {
+          if (aLeaf && bLeaf) return (1.4 + leafFactor * 0.1) / a.depth;
           const childCount = Math.max((a.children?.length || 0), (b.children?.length || 0), 1);
-          return (1 + childCount * 0.15) / a.depth;
+          return (1 + childCount * 0.12 + leafFactor * 0.05) / a.depth;
         }
-        return 2 / a.depth;
+        return (aLeaf || bLeaf ? 2.2 + leafFactor * 0.1 : 2) / a.depth;
       });
 
     treeLayout(root);
@@ -138,8 +155,12 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
     const svgEl = svg as unknown as d3.Selection<SVGSVGElement, unknown, null, undefined>;
     svgEl.call(zoomBehaviour);
 
-    // Center the tree
-    const initialScale = Math.min(width / (radius * 2.6), height / (radius * 2.6), 1);
+    // Center the tree — fit to container, accounting for node count
+    const nodeCount = root.descendants().length;
+    // Use different scale for w vs h so wide screens spread nodes better
+    const scaleW = width / (radius * 2.4);
+    const scaleH = height / (radius * (nodeCount > 20 ? 2.6 : 2.4));
+    const initialScale = Math.min(scaleW, scaleH, 1.1);
     const initialTransform = d3.zoomIdentity
       .translate(width / 2, height / 2)
       .scale(initialScale);
@@ -262,11 +283,13 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
 
         // Main label — wrap text
         const label = d.data.label;
+        const nonLatin = isNonLatin(label);
+        const maxLineChars = nonLatin ? 10 : 12;
         const words = label.split(/\s+/);
         const lines: string[] = [];
         let currentLine = '';
         words.forEach(word => {
-          if ((currentLine + ' ' + word).trim().length > 12) {
+          if ((currentLine + ' ' + word).trim().length > maxLineChars) {
             if (currentLine) lines.push(currentLine);
             currentLine = word;
           } else {
@@ -278,21 +301,23 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
         lines.forEach((line, li) => {
           ng.append('text')
             .attr('x', 0)
-            .attr('y', (li - (lines.length - 1) / 2) * 16)
+            .attr('y', (li - (lines.length - 1) / 2) * (nonLatin ? 20 : 16))
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
             .attr('fill', '#ffffff')
-            .attr('font-size', 14)
+            .attr('font-size', nonLatin ? 13 : 14)
             .attr('font-weight', '700')
-            .attr('font-family', 'system-ui, -apple-system, sans-serif')
-            .text(truncate(line, 16));
+            .attr('font-family', FONT_FAMILY)
+            .text(truncate(line, nonLatin ? 12 : 16));
         });
 
       } else if (isCat) {
         // Category — rounded rectangle pill
-        const labelText = truncate(d.data.label, 20);
-        const pillWidth = Math.max(labelText.length * 8.5 + 28, 90);
-        const pillHeight = 36;
+        const labelText = truncate(d.data.label, 16);
+        const nonLatinCat = isNonLatin(labelText);
+        const charWidth = nonLatinCat ? 11 : 8.5;
+        const pillWidth = Math.max(labelText.length * charWidth + 24, nonLatinCat ? 100 : 90);
+        const pillHeight = nonLatinCat ? 36 : 34;
 
         ng.attr('filter', 'url(#nodeShadow)');
 
@@ -312,16 +337,18 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
           .attr('text-anchor', 'middle')
           .attr('dominant-baseline', 'central')
           .attr('fill', '#ffffff')
-          .attr('font-size', 12)
+          .attr('font-size', nonLatinCat ? 13 : 12)
           .attr('font-weight', '600')
-          .attr('font-family', 'system-ui, -apple-system, sans-serif')
+          .attr('font-family', FONT_FAMILY)
           .text(labelText);
 
       } else {
         // Detail — smaller pill with light fill
-        const labelText = truncate(d.data.label, 24);
-        const pillWidth = Math.max(labelText.length * 7 + 20, 70);
-        const pillHeight = 28;
+        const labelText = truncate(d.data.label, 22);
+        const nonLatinDet = isNonLatin(labelText);
+        const charWidthDet = nonLatinDet ? 9.5 : 7;
+        const pillWidth = Math.max(labelText.length * charWidthDet + 18, nonLatinDet ? 80 : 70);
+        const pillHeight = nonLatinDet ? 30 : 26;
 
         ng.attr('filter', 'url(#nodeShadow)');
 
@@ -341,9 +368,9 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
           .attr('text-anchor', 'middle')
           .attr('dominant-baseline', 'central')
           .attr('fill', branchColor.stroke)
-          .attr('font-size', 10.5)
+          .attr('font-size', nonLatinDet ? 10 : 10)
           .attr('font-weight', '500')
-          .attr('font-family', 'system-ui, -apple-system, sans-serif')
+          .attr('font-family', FONT_FAMILY)
           .text(labelText);
       }
 
@@ -363,7 +390,7 @@ const D3MindMap: React.FC<D3MindMapProps> = ({ nodes: rawNodes, edges }) => {
           .attr('text-anchor', 'middle')
           .attr('font-size', 11)
           .attr('fill', '#ffffff')
-          .attr('font-family', 'system-ui, sans-serif')
+          .attr('font-family', FONT_FAMILY)
           .text(d.data.label);
         const bbox = tipText.node()?.getBBox();
         if (bbox) {

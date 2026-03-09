@@ -44,13 +44,17 @@ class ComicGenerator:
         
     async def generate(self, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate comic strip from preprocessed text
+        Generate comic strip from preprocessed text.
+        
+        Image generation is deferred to the frontend via /api/generate-image
+        to avoid blocking the main /api/process endpoint (each image can take
+        up to 120 seconds).
         
         Returns:
             Dict with:
             - title: Story title
             - summary: Brief summary
-            - panels: List of panel dicts with caption, image_url, characters, setting
+            - panels: List of panel dicts with caption, prompt, characters, setting
         """
         text = preprocessed.get("original_text", "")
         sentences = preprocessed.get("sentences", [])
@@ -66,9 +70,9 @@ class ComicGenerator:
         # Segment into panels (4-6 panels typically)
         panels = self._segment_into_panels(sentences, characters, locations)
         
-        # Generate images for each panel
-        for panel in panels:
-            panel["image_url"] = await self._generate_panel_image(panel)
+        # NOTE: Image generation is NOT done here — the frontend calls
+        # /api/generate-image for each panel individually so the user sees
+        # panels immediately and images load progressively.
         
         return {
             "title": title,
