@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisualVerse — Project Documentation</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --accent2: #a78bfa;
+    --accent3: #34d399; --text: #e2e8f0; --dim: #94a3b8; --border: #334155;
+    --code-bg: #0d1117; --tag: #1e3a5f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  
+  /* Hero */
+  .hero { text-align: center; padding: 80px 20px 60px; background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #042f2e 100%); }
+  .hero h1 { font-size: 3.2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 1.15rem; color: var(--dim); max-width: 700px; margin: 16px auto 0; }
+  .badge-row { display: flex; gap: 10px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+  .badge { display: inline-block; padding: 5px 14px; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; }
+  .badge-blue { background: #1e3a5f; color: #7dd3fc; }
+  .badge-purple { background: #2e1065; color: #c4b5fd; }
+  .badge-green { background: #064e3b; color: #6ee7b7; }
+  .badge-orange { background: #431407; color: #fdba74; }
+
+  /* Container */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Section */
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--border); }
+  h2 { font-size: 1.9rem; font-weight: 700; margin-bottom: 28px; color: #fff; display: flex; align-items: center; gap: 12px; }
+  h2 .icon { font-size: 1.5rem; }
+  h3 { font-size: 1.35rem; color: var(--accent); margin: 28px 0 14px; font-weight: 600; }
+  h4 { font-size: 1.1rem; color: var(--accent2); margin: 20px 0 10px; font-weight: 600; }
+  p, li { color: var(--text); }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 6px 0; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin: 20px 0; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+  .card h3 { margin-top: 0; }
+
+  /* Pipeline */
+  .pipeline { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 24px 0; justify-content: center; }
+  .pipe-step { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; text-align: center; min-width: 120px; }
+  .pipe-step .label { font-weight: 700; font-size: 0.95rem; color: var(--accent); }
+  .pipe-step .sub { font-size: 0.78rem; color: var(--dim); margin-top: 4px; }
+  .pipe-arrow { font-size: 1.4rem; color: var(--dim); padding: 0 6px; }
+
+  /* Code blocks */
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; overflow-x: auto; font-size: 0.88rem; line-height: 1.6; margin: 14px 0; }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+  .inline-code { background: var(--code-bg); padding: 2px 8px; border-radius: 4px; font-size: 0.88rem; color: #7dd3fc; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+  th { background: #1a1a2e; color: var(--accent); text-align: left; padding: 12px 16px; font-weight: 600; border-bottom: 2px solid var(--accent); }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(56, 189, 248, 0.04); }
+
+  /* Diagram boxes */
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin: 20px 0; overflow-x: auto; }
+  .level-row { display: flex; align-items: flex-start; margin: 16px 0; gap: 16px; }
+  .level-label { min-width: 90px; font-size: 0.8rem; font-weight: 700; color: var(--accent2); padding-top: 8px; }
+  .level-items { display: flex; gap: 12px; flex-wrap: wrap; }
+  .node { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-align: center; }
+  .node-main { background: #312e81; color: #a5b4fc; border: 2px solid #6366f1; }
+  .node-cat { background: #1e3a5f; color: #7dd3fc; border: 1px solid #38bdf8; }
+  .node-det { background: #064e3b; color: #6ee7b7; border: 1px solid #34d399; }
+  .connector { color: var(--dim); font-size: 1.2rem; padding: 0 4px; }
+
+  /* Highlight box */
+  .highlight { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(56,189,248,0.08)); border-left: 4px solid var(--accent); border-radius: 8px; padding: 20px 24px; margin: 20px 0; }
+  .highlight-green { border-left-color: var(--accent3); background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(16,185,129,0.05)); }
+  .highlight-purple { border-left-color: var(--accent2); background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(139,92,246,0.05)); }
+
+  /* TOC */
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin: 30px 0; }
+  .toc h3 { margin-top: 0; color: #fff; }
+  .toc ol { counter-reset: toc; list-style: none; padding: 0; }
+  .toc li { counter-increment: toc; margin: 8px 0; }
+  .toc li::before { content: counter(toc) ". "; color: var(--accent); font-weight: 700; }
+  .toc a { color: var(--text); text-decoration: none; border-bottom: 1px dashed var(--border); transition: all 0.2s; }
+  .toc a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Footer */
+  footer { text-align: center; padding: 40px 20px; color: var(--dim); font-size: 0.85rem; border-top: 1px solid var(--border); }
+  
+  .math { font-family: 'Cambria Math', 'Times New Roman', serif; font-style: italic; color: #c4b5fd; }
+  
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2rem; }
+    .pipeline { flex-direction: column; align-items: stretch; }
+    .pipe-arrow { transform: rotate(90deg); text-align: center; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <h1>VisualVerse</h1>
+  <p>A Tri-Mode NLP System that converts text into <strong>Mind Maps</strong>, <strong>Comic Strips</strong>, and <strong>Stories</strong> using classical NLP &amp; Machine Learning</p>
+  <div class="badge-row">
+    <span class="badge badge-blue">Python · FastAPI</span>
+    <span class="badge badge-purple">React · TypeScript</span>
+    <span class="badge badge-green">SpaCy · Scikit-learn</span>
+    <span class="badge badge-orange">D3.js · FLUX</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<div class="toc">
+  <h3>📑 Table of Contents</h3>
+  <ol>
+    <li><a href="#overview">Project Overview</a></li>
+    <li><a href="#architecture">System Architecture</a></li>
+    <li><a href="#shared-nlp">Shared NLP Pipeline (All Modes)</a></li>
+    <li><a href="#mode1-mindmap">Mode 1 — Mind Map Generation</a></li>
+    <li><a href="#mode2-comic">Mode 2 — Comic Strip Generation</a></li>
+    <li><a href="#mode3-story">Mode 3 — Story Generation from Keywords</a></li>
+    <li><a href="#ml-models">ML Models &amp; Training</a></li>
+    <li><a href="#frontend">Frontend &amp; Visualization</a></li>
+    <li><a href="#multilingual">Multilingual Support</a></li>
+    <li><a href="#api">API Reference</a></li>
+    <li><a href="#techstack">Technology Stack</a></li>
+    <li><a href="#howtorun">How to Run</a></li>
+  </ol>
+</div>
+
+<!-- ===== 1. OVERVIEW ===== -->
+<section id="overview">
+  <h2><span class="icon">🎯</span> 1. Project Overview</h2>
+  <p>VisualVerse is a full-stack web application that takes <strong>raw text</strong> as input and automatically transforms it into one of three visual outputs:</p>
+  
+  <div class="card-grid">
+    <div class="card">
+      <h3>🧠 Mind Map</h3>
+      <p>For <strong>informational / conceptual text</strong> (science articles, tech docs, essays). Produces a 3-level radial tree with a central topic, category branches, and detail nodes.</p>
+      <p style="margin-top:10px"><strong>NLP:</strong> Keyphrase Extraction, Topic Modeling, Relation Extraction, Compound Term Merging</p>
+    </div>
+    <div class="card">
+      <h3>🎬 Comic Strip</h3>
+      <p>For <strong>narrative text</strong> (stories, fables, event descriptions). Produces 4-6 captioned comic panels with AI-generated images.</p>
+      <p style="margin-top:10px"><strong>NLP:</strong> NER (Characters/Locations), Sentence Segmentation, Scene Detection, Image Prompt Engineering</p>
+    </div>
+    <div class="card">
+      <h3>📖 Story Generator</h3>
+      <p>For <strong>keyword-based creative writing</strong>. Takes user keywords, classifies them by POS, and generates a coherent fairy-tale style story.</p>
+      <p style="margin-top:10px"><strong>NLP:</strong> N-gram Markov Chain Language Model, SpaCy POS Tagging, Corpus-based Sentence Retrieval</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Key Insight:</strong> The system first <em>classifies</em> the input text as NARRATIVE or INFORMATIONAL using a Random Forest classifier, then routes it to the appropriate visualization pipeline. Story mode is activated manually via keyword input.
+  </div>
+</section>
+
+<!-- ===== 2. ARCHITECTURE ===== -->
+<section id="architecture">
+  <h2><span class="icon">🏗️</span> 2. System Architecture</h2>
+
+  <h3>High-Level Data Flow</h3>
+  <div class="pipeline">
+    <div class="pipe-step"><span class="label">User Input</span><div class="sub">Text or Keywords</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">FastAPI Backend</span><div class="sub">Python Server</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">NLP Pipeline</span><div class="sub">SpaCy + Sklearn</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Generator</span><div class="sub">MindMap / Comic / Story</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">React Frontend</span><div class="sub">D3.js / Image Grid</div></div>
+  </div>
+
+  <h3>Directory Structure</h3>
+  <pre><code>VisualVerse/
+├── App.tsx, index.tsx          # React frontend (TypeScript)
+├── components/
+│   ├── D3MindMap.tsx           # D3.js radial mind map renderer
+│   └── Button.tsx              # Reusable UI component
+├── services/
+│   └── geminiService.ts        # API client (calls FastAPI backend)
+├── backend/
+│   ├── main.py                 # FastAPI server + route definitions
+│   ├── api/routes.py           # Additional API routes
+│   ├── nlp/
+│   │   ├── preprocessing/      # Text preprocessor (SpaCy tokenization, NER)
+│   │   ├── classification/     # Text classifier (Random Forest)
+│   │   ├── keyphrase/          # Keyphrase extractor (NLP + Gradient Boosting)
+│   │   ├── topic_model/        # Topic modeler (LDA + KMeans clustering)
+│   │   └── relation/           # Relation extractor (MLP + pattern matching)
+│   ├── comic_gen/              # Comic strip generator
+│   ├── mindmap_gen/            # Mind map generator (NetworkX graph)
+│   └── story_gen/              # Story generator (Markov Chain)
+├── dataset/                    # Fairy tales corpus + training datasets
+└── training/                   # Cross-validation & training scripts</code></pre>
+</section>
+
+<!-- ===== 3. SHARED NLP PIPELINE ===== -->
+<section id="shared-nlp">
+  <h2><span class="icon">⚙️</span> 3. Shared NLP Pipeline (All Modes)</h2>
+  <p>Before any visualization, input text passes through a shared NLP pipeline. These modules are used by <strong>both</strong> the Mind Map and Comic pipelines (story mode has its own pipeline).</p>
+
+  <!-- 3.1 Preprocessing -->
+  <div class="card">
+    <h3>3.1 Text Preprocessing</h3>
+    <p><strong>File:</strong> <span class="inline-code">nlp/preprocessing/preprocessor.py</span></p>
+    <p><strong>Library:</strong> SpaCy (<span class="inline-code">en_core_web_sm</span> for English, <span class="inline-code">xx_ent_wiki_sm</span> for Hindi/Tamil)</p>
+    
+    <h4>What it does:</h4>
+    <ul>
+      <li><strong>Tokenization</strong> — splits text into tokens using SpaCy's linguistic tokenizer</li>
+      <li><strong>Sentence Segmentation</strong> — splits into sentences for panel/scene boundaries</li>
+      <li><strong>Named Entity Recognition (NER)</strong> — extracts PERSON, ORG, GPE, LOC entities</li>
+      <li><strong>POS Tagging</strong> — assigns part-of-speech tags (NOUN, VERB, ADJ, etc.)</li>
+      <li><strong>Noun Chunk Extraction</strong> — identifies compound noun phrases</li>
+      <li><strong>Language Detection</strong> — uses <span class="inline-code">langdetect</span> + Unicode script analysis</li>
+    </ul>
+
+    <h4>Output (passed to all downstream modules):</h4>
+    <pre><code>{
+  "original_text": "Photosynthesis is the process...",
+  "sentences": ["Photosynthesis is...", "Plants use..."],
+  "tokens": ["photosynthesis", "process", ...],
+  "characters": ["Alice", "Bob"],       # NER → PERSON
+  "locations": ["Forest", "Castle"],     # NER → LOC/GPE
+  "noun_phrases": ["light energy", "carbon dioxide"],
+  "language": "en"
+}</code></pre>
+  </div>
+
+  <!-- 3.2 Text Classification -->
+  <div class="card">
+    <h3>3.2 Text Classification (Narrative vs. Informational)</h3>
+    <p><strong>File:</strong> <span class="inline-code">nlp/classification/classifier.py</span></p>
+    <p><strong>ML Model:</strong> Random Forest Classifier (scikit-learn)</p>
+
+    <h4>Purpose:</h4>
+    <p>Determines whether the input text is a <strong>story/narrative</strong> (→ Comic mode) or <strong>conceptual/informational</strong> (→ Mind Map mode).</p>
+
+    <h4>Feature Engineering (Handcrafted Linguistic Features):</h4>
+    <table>
+      <tr><th>Feature</th><th>What it Measures</th><th>Why</th></tr>
+      <tr><td>Pronoun Ratio</td><td>% of tokens that are pronouns (I, he, she, they)</td><td>Stories have more pronouns</td></tr>
+      <tr><td>Past Tense Ratio</td><td>% of verbs in past tense (VBD tag)</td><td>Narratives use past tense</td></tr>
+      <tr><td>Dialogue Markers</td><td>Count of quotes, "said", "asked" etc.</td><td>Stories have dialogue</td></tr>
+      <tr><td>Named Entity Density</td><td>PERSON entities per sentence</td><td>Stories have characters</td></tr>
+      <tr><td>Sentence Length Variance</td><td>Std dev of sentence lengths</td><td>Essays are uniform; stories vary</td></tr>
+      <tr><td>TF-IDF Features</td><td>Top term weights from fitted vectorizer</td><td>Domain-specific vocabulary signals</td></tr>
+    </table>
+
+    <h4>How Classification Works:</h4>
+    <pre><code># Simplified pipeline
+features = extract_linguistic_features(text)  # handcrafted features
+tfidf    = vectorizer.transform([text])       # TF-IDF features
+X        = np.hstack([features, tfidf])       # combine both
+prediction = random_forest.predict(X)         # → "NARRATIVE" or "INFORMATIONAL"</code></pre>
+
+    <div class="highlight-green">
+      <strong>Result:</strong> If the model says NARRATIVE → comic pipeline. If INFORMATIONAL → mindmap pipeline. User can also override manually.
+    </div>
+  </div>
+
+  <!-- 3.3 Keyphrase Extraction -->
+  <div class="card">
+    <h3>3.3 Keyphrase Extraction (Hybrid NLP + ML)</h3>
+    <p><strong>File:</strong> <span class="inline-code">nlp/keyphrase/extractor.py</span></p>
+    <p><strong>ML Model:</strong> Gradient Boosting Classifier (scikit-learn)</p>
+
+    <h4>This is the most important module — used by the Mind Map generator to extract key concepts.</h4>
+
+    <h4>Step 1: NLP Candidate Generation (SpaCy)</h4>
+    <p>Four NLP techniques work together to find <em>candidate</em> keyphrases:</p>
+    <table>
+      <tr><th>Technique</th><th>What it Extracts</th><th>Example</th></tr>
+      <tr><td><strong>Named Entity Recognition (NER)</strong></td><td>ORG, PRODUCT, GPE entities</td><td>"Google", "Python", "India"</td></tr>
+      <tr><td><strong>Noun Chunks</strong></td><td>Compound noun phrases</td><td>"machine learning", "carbon dioxide"</td></tr>
+      <tr><td><strong>Dependency Parsing</strong></td><td>Subjects (nsubj) and objects (dobj, pobj)</td><td>"photosynthesis" (subject), "glucose" (object)</td></tr>
+      <tr><td><strong>POS Tag Filtering</strong></td><td>Tokens tagged as NOUN or PROPN</td><td>"algorithm", "Einstein"</td></tr>
+    </table>
+
+    <h4>Step 2: ML Scoring (Gradient Boosting)</h4>
+    <p>Each candidate is scored using 8 numerical features:</p>
+    <table>
+      <tr><th>#</th><th>Feature</th><th>Description</th></tr>
+      <tr><td>1</td><td>TF-IDF Score</td><td>Term frequency × inverse document frequency — how important is this word?</td></tr>
+      <tr><td>2</td><td>Position Score</td><td>How early does it appear? (first sentence keyphrases score higher)</td></tr>
+      <tr><td>3</td><td>Frequency</td><td>How many times does it appear in the text?</td></tr>
+      <tr><td>4</td><td>Word Length</td><td>Number of words in the phrase (multi-word = better)</td></tr>
+      <tr><td>5</td><td>Is NER?</td><td>Binary: was it found by Named Entity Recognition?</td></tr>
+      <tr><td>6</td><td>Is Noun Chunk?</td><td>Binary: was it found as a noun chunk?</td></tr>
+      <tr><td>7</td><td>Is Subject/Object?</td><td>Binary: was it a syntactic subject or object?</td></tr>
+      <tr><td>8</td><td>Capitalization</td><td>Is it capitalized? (proper nouns, acronyms)</td></tr>
+    </table>
+
+    <pre><code># Scoring pipeline
+candidates = ner_entities + noun_chunks + dep_subjects + dep_objects  # NLP
+features   = [compute_8_features(c, text) for c in candidates]       # Feature vectors
+scores     = gradient_boosting.predict_proba(features)[:, 1]         # ML probability
+ranked     = sort_by_score(candidates, scores)                       # Top keyphrases</code></pre>
+  </div>
+
+  <!-- 3.4 Topic Modeling -->
+  <div class="card">
+    <h3>3.4 Topic Modeling</h3>
+    <p><strong>File:</strong> <span class="inline-code">nlp/topic_model/topic_modeler.py</span></p>
+    <p><strong>ML Model:</strong> Latent Dirichlet Allocation (LDA) + KMeans Clustering</p>
+    
+    <h4>Purpose:</h4>
+    <p>Discovers hidden thematic groups in the text to organize mind map categories.</p>
+
+    <h4>Methodology:</h4>
+    <ol>
+      <li><strong>Vectorization:</strong> Convert text into a bag-of-words matrix using <span class="inline-code">CountVectorizer</span></li>
+      <li><strong>LDA (Latent Dirichlet Allocation):</strong> A generative probabilistic model that discovers <em>K</em> latent topics. Each topic is a distribution over words; each document is a distribution over topics.</li>
+      <li><strong>KMeans Clustering:</strong> Groups related concepts based on TF-IDF vectors for additional hierarchical organization.</li>
+    </ol>
+
+    <div class="highlight-purple">
+      <strong>Math behind LDA:</strong><br>
+      For each document <em>d</em>, LDA assumes a generative process:<br>
+      1. Choose topic distribution <span class="math">θ<sub>d</sub> ~ Dir(α)</span><br>
+      2. For each word position, choose topic <span class="math">z ~ Multinomial(θ<sub>d</sub>)</span><br>
+      3. Choose word <span class="math">w ~ Multinomial(φ<sub>z</sub>)</span><br>
+      The model is trained via variational inference to find the most probable topic-word and document-topic distributions.
+    </div>
+
+    <h4>Output:</h4>
+    <pre><code>{
+  "topics": [
+    {"id": 0, "words": ["energy", "light", "solar"], "weight": 0.35},
+    {"id": 1, "words": ["plant", "leaves", "green"], "weight": 0.28},
+    ...
+  ],
+  "topic_distribution": {"topic_0": 0.35, "topic_1": 0.28, ...}
+}</code></pre>
+  </div>
+
+  <!-- 3.5 Relation Extraction -->
+  <div class="card">
+    <h3>3.5 Relation Extraction</h3>
+    <p><strong>File:</strong> <span class="inline-code">nlp/relation/relation_extractor.py</span></p>
+    <p><strong>ML Model:</strong> MLP (Multi-Layer Perceptron) Neural Network + Regex Pattern Matching</p>
+
+    <h4>Purpose:</h4>
+    <p>Finds relationships between keyphrases (e.g., "Photosynthesis <em>REQUIRES</em> sunlight").</p>
+
+    <h4>Relation Types Detected:</h4>
+    <table>
+      <tr><th>Relation</th><th>Trigger Words (English)</th><th>Example</th></tr>
+      <tr><td>IS_A</td><td>is a, type of, kind of, form of</td><td>"A dog IS_A mammal"</td></tr>
+      <tr><td>PART_OF</td><td>part of, component, contains, belongs to</td><td>"Leaf PART_OF plant"</td></tr>
+      <tr><td>CAUSES</td><td>causes, leads to, results in, triggers</td><td>"Deforestation CAUSES erosion"</td></tr>
+      <tr><td>REQUIRES</td><td>requires, needs, depends, essential</td><td>"Photosynthesis REQUIRES sunlight"</td></tr>
+      <tr><td>CONTRASTS</td><td>vs, unlike, differs, whereas</td><td>"Aerobic CONTRASTS anaerobic"</td></tr>
+      <tr><td>RELATES_TO</td><td>relates, connected, associated</td><td>"DNA RELATES_TO genetics"</td></tr>
+    </table>
+
+    <h4>Dual Approach:</h4>
+    <ol>
+      <li><strong>Pattern Matching:</strong> Regex patterns scan for trigger words between entity pairs (works for all 3 languages — English, Hindi, Tamil)</li>
+      <li><strong>ML Classifier:</strong> MLP neural network trained on TF-IDF features of sentence context between entity pairs. Used when patterns don't match.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===== 4. MIND MAP ===== -->
+<section id="mode1-mindmap">
+  <h2><span class="icon">🧠</span> 4. Mode 1 — Mind Map Generation</h2>
+
+  <h3>Complete Pipeline</h3>
+  <div class="pipeline">
+    <div class="pipe-step"><span class="label">Input Text</span></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Preprocess</span><div class="sub">SpaCy NER, POS, Deps</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Classify</span><div class="sub">Random Forest</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Keyphrases</span><div class="sub">NLP + Gradient Boosting</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Topics</span><div class="sub">LDA + KMeans</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Relations</span><div class="sub">MLP + Patterns</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Mind Map</span><div class="sub">NetworkX + D3.js</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Mind Map Generator</h3>
+    <p><strong>File:</strong> <span class="inline-code">mindmap_gen/mindmap_generator.py</span></p>
+    <p><strong>Graph Library:</strong> NetworkX (directed graph)</p>
+
+    <h4>3-Level Hierarchy:</h4>
+    <div class="diagram">
+      <div class="level-row">
+        <div class="level-label">Level 0<br>(Center)</div>
+        <div class="level-items">
+          <div class="node node-main">Main Topic</div>
+        </div>
+      </div>
+      <div style="text-align:center; color: var(--dim); margin: 4px 0">↙ &nbsp;&nbsp;&nbsp; ↓ &nbsp;&nbsp;&nbsp; ↘</div>
+      <div class="level-row">
+        <div class="level-label">Level 1<br>(Categories)</div>
+        <div class="level-items">
+          <div class="node node-cat">Category A</div>
+          <div class="node node-cat">Category B</div>
+          <div class="node node-cat">Category C</div>
+        </div>
+      </div>
+      <div style="text-align:center; color: var(--dim); margin: 4px 0">↙↘ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↙↘ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↙↘</div>
+      <div class="level-row">
+        <div class="level-label">Level 2<br>(Details)</div>
+        <div class="level-items">
+          <div class="node node-det">detail 1</div>
+          <div class="node node-det">detail 2</div>
+          <div class="node node-det">detail 3</div>
+          <div class="node node-det">detail 4</div>
+          <div class="node node-det">detail 5</div>
+          <div class="node node-det">detail 6</div>
+        </div>
+      </div>
+    </div>
+
+    <h4>Key Algorithms Inside the Generator:</h4>
+    <table>
+      <tr><th>Algorithm</th><th>What it Does</th></tr>
+      <tr><td><strong>Main Topic Extraction</strong></td><td>Parses first sentence, removes stopwords &amp; generic adjectives (e.g., "chemical", "process"), keeps 1-2 core nouns → title like "Photosynthesis"</td></tr>
+      <tr><td><strong>Compound Term Merging</strong></td><td>Detects when "carbon" and "dioxide" are extracted as separate keyphrases but appear together in text → merges into "carbon dioxide"</td></tr>
+      <tr><td><strong>Generic Word Filtering</strong></td><td>Removes vague single-word keyphrases like "process", "system", "energy" that don't add information</td></tr>
+      <tr><td><strong>Category Extraction</strong></td><td>Combines (1) pattern-matched categories from text, (2) high-scoring 1-2 word keyphrases, (3) LDA topic clusters. Max 5 categories.</td></tr>
+      <tr><td><strong>Semantic Mapping</strong></td><td>Each keyphrase is assigned to the most relevant category using: text proximity (within 100 chars), semantic keyword associations, and direct mention overlap. Max 4 per category.</td></tr>
+      <tr><td><strong>Radial Layout</strong></td><td>NetworkX-based position calculation for top-down/radial tree layout, rendered by D3.js on the frontend</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>D3.js Visualization (Frontend)</h3>
+    <p><strong>File:</strong> <span class="inline-code">components/D3MindMap.tsx</span></p>
+    <ul>
+      <li>Renders the graph as an interactive <strong>SVG radial tree</strong></li>
+      <li>Smooth <strong>cubic Bézier curves</strong> connect parent-child nodes</li>
+      <li>Nodes are <strong>rounded pill shapes</strong> with dynamic sizing based on text length</li>
+      <li>Color-coded: purple for center, blue for categories, teal for details</li>
+      <li>Supports <strong>Noto Sans</strong> fonts for Hindi (Devanagari) and Tamil scripts</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 5. COMIC STRIP ===== -->
+<section id="mode2-comic">
+  <h2><span class="icon">🎬</span> 5. Mode 2 — Comic Strip Generation</h2>
+
+  <h3>Complete Pipeline</h3>
+  <div class="pipeline">
+    <div class="pipe-step"><span class="label">Narrative Text</span></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Preprocess</span><div class="sub">NER + Sentences</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Classify</span><div class="sub">"NARRATIVE" ✓</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Scene Segmentation</span><div class="sub">Group sentences into scenes</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Prompt Engineering</span><div class="sub">Build image prompts</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">FLUX Model</span><div class="sub">Pollinations.ai</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Comic Layout</span><div class="sub">React Grid</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Comic Generator</h3>
+    <p><strong>File:</strong> <span class="inline-code">comic_gen/comic_generator.py</span></p>
+
+    <h4>Step 1: Scene Segmentation</h4>
+    <p>Groups the preprocessed sentences into 4-6 <strong>scenes</strong> (comic panels). Each scene gets:</p>
+    <ul>
+      <li><strong>Caption:</strong> A short summary sentence for the panel</li>
+      <li><strong>Characters:</strong> NER-detected PERSON entities active in this scene</li>
+      <li><strong>Setting:</strong> NER-detected LOC/GPE entities for the scene</li>
+    </ul>
+
+    <h4>Step 2: Image Prompt Engineering</h4>
+    <p>Each scene is converted into an optimized text prompt for the image generation model:</p>
+    <pre><code>prompt = f"Comic panel, {style}, {caption}, characters: {chars}, 
+          setting: {location}, detailed illustration, vibrant colors"</code></pre>
+
+    <h4>Step 3: Image Generation (Progressive Loading)</h4>
+    <table>
+      <tr><th>Source</th><th>Model</th><th>Cost</th><th>How</th></tr>
+      <tr><td>Pollinations.ai</td><td>FLUX</td><td>Free, no API key</td><td>HTTP GET with URL-encoded prompt</td></tr>
+      <tr><td>HuggingFace (fallback)</td><td>Stable Diffusion XL / FLUX.1-schnell</td><td>Free tier / credits</td><td>HF Inference API</td></tr>
+      <tr><td>SVG Placeholder</td><td>—</td><td>Free</td><td>Generated SVG with gradient + caption text</td></tr>
+    </table>
+    
+    <div class="highlight">
+      <strong>Progressive Loading Pattern:</strong> The backend returns panels <em>immediately</em> (without images). The frontend then calls <span class="inline-code">POST /api/generate-image</span> for each panel individually. While images load, colorful SVG placeholders are shown. This prevents the API from blocking for 2+ minutes.
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6. STORY GENERATION ===== -->
+<section id="mode3-story">
+  <h2><span class="icon">📖</span> 6. Mode 3 — Story Generation from Keywords</h2>
+
+  <h3>Complete Pipeline</h3>
+  <div class="pipeline">
+    <div class="pipe-step"><span class="label">Keywords</span><div class="sub">User-provided tags</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">POS Tagging</span><div class="sub">SpaCy</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Corpus Search</span><div class="sub">Seed Sentences</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Markov Chain</span><div class="sub">Bigram + Trigram</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Story Assembly</span><div class="sub">Narrative Arc</div></div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-step"><span class="label">Panel Split</span><div class="sub">6 Story Panels</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Story Generator</h3>
+    <p><strong>File:</strong> <span class="inline-code">story_gen/story_generator.py</span></p>
+    <p><strong>Corpus:</strong> Fairy Tales Dataset — 3.7 million words</p>
+    <p><strong>Core NLP Technique:</strong> N-gram Markov Chain Language Model</p>
+
+    <h4>What is a Markov Chain?</h4>
+    <div class="highlight-purple">
+      <p>A <strong>Markov Chain</strong> is a probabilistic model where the next state depends <em>only</em> on the current state (the "Markov property"). For text generation:</p>
+      <ul>
+        <li><strong>Bigram:</strong> Next word depends on the <em>previous 1 word</em>. &nbsp; <span class="math">P(w<sub>n</sub> | w<sub>n-1</sub>)</span></li>
+        <li><strong>Trigram:</strong> Next word depends on the <em>previous 2 words</em>. &nbsp; <span class="math">P(w<sub>n</sub> | w<sub>n-2</sub>, w<sub>n-1</sub>)</span></li>
+      </ul>
+      <p style="margin-top:10px">This is <strong>NOT</strong> a Hidden Markov Model (HMM). In a Markov Chain, all states (words) are <em>observable</em>. An HMM would have hidden states (like POS tags) that you infer from observations — that's a different technique used for POS tagging, not text generation.</p>
+    </div>
+
+    <h4>Training Process</h4>
+    <pre><code># Step 1: Load fairy tales corpus (3.7M words)
+text = open("dataset/cleaned_merged_fairy_tales_without_eos.txt").read()
+
+# Step 2: Split into sentences (keep 5-80 words each)
+sentences = re.split(r'(?<=[.!?])\s+', text)
+
+# Step 3: Build frequency tables
+for sentence in sentences:
+    words = sentence.split()
+    starters.append(words[0] + " " + words[1])  # sentence starters
+    
+    for i in range(len(words) - 1):
+        bigrams[words[i]].append(words[i+1])     # word → next word
+    
+    for i in range(len(words) - 2):
+        key = words[i] + " " + words[i+1]
+        trigrams[key].append(words[i+2])          # two words → next word
+
+# Step 4: Cache as markov_model.pkl</code></pre>
+
+    <h4>Generation Process (4 Phases)</h4>
+    <table>
+      <tr><th>Phase</th><th>What Happens</th><th>NLP Technique</th></tr>
+      <tr>
+        <td><strong>1. Keyword Classification</strong></td>
+        <td>Each keyword is POS-tagged using SpaCy: "forest" → NOUN, "dark" → ADJ, "run" → VERB. This determines how keywords are woven into the story (nouns as subjects, verbs as actions).</td>
+        <td>SpaCy POS Tagging</td>
+      </tr>
+      <tr>
+        <td><strong>2. Seed Sentence Retrieval</strong></td>
+        <td>Search the 50,000 cached corpus sentences for ones containing user keywords. These become the story's opening sentences.</td>
+        <td>Corpus-based Retrieval</td>
+      </tr>
+      <tr>
+        <td><strong>3. Markov Chain Expansion</strong></td>
+        <td>Generate new sentences by: (a) pick a keyword or random starter as seed, (b) look up next-word candidates from trigram table (fallback to bigram), (c) randomly choose next word, (d) repeat until sentence ends with punctuation or reaches max length.</td>
+        <td>N-gram Language Model</td>
+      </tr>
+      <tr>
+        <td><strong>4. Narrative Assembly</strong></td>
+        <td>Organize sentences into a story arc: Opening (corpus seeds) → Middle (Markov-generated, keyword-seeded) → Ending (closure sentence). Split into 6 panels for display.</td>
+        <td>Sentence Segmentation</td>
+      </tr>
+    </table>
+
+    <h4>Markov Sentence Generation (Detailed)</h4>
+    <pre><code>def _generate_markov_sentence(seed_word, max_words=25):
+    # Start with seed word or random starter
+    if seed_word and seed_word in bigrams:
+        words = [seed_word]
+    else:
+        words = random.choice(starters).split()  # e.g., ["Once", "upon"]
+    
+    for _ in range(max_words):
+        # Try trigram first (better coherence)
+        key = words[-2] + " " + words[-1]
+        if key in trigrams:
+            next_word = random.choice(trigrams[key])
+        # Fall back to bigram
+        elif words[-1] in bigrams:
+            next_word = random.choice(bigrams[words[-1]])
+        else:
+            break
+        
+        words.append(next_word)
+        
+        # Stop at sentence-ending punctuation
+        if next_word.endswith(('.', '!', '?')):
+            break
+    
+    return " ".join(words)</code></pre>
+  </div>
+
+  <div class="card">
+    <h3>Markov Chain vs. HMM — Key Difference</h3>
+    <table>
+      <tr><th>Property</th><th>Markov Chain (What We Use)</th><th>HMM (Not Used Here)</th></tr>
+      <tr><td><strong>States</strong></td><td>Observable (actual words)</td><td>Hidden (POS tags, labels)</td></tr>
+      <tr><td><strong>Purpose</strong></td><td>Generate sequences (text)</td><td>Infer hidden labels from observations</td></tr>
+      <tr><td><strong>Algorithm</strong></td><td>Direct probability lookup + random sampling</td><td>Viterbi decoding / Forward-Backward</td></tr>
+      <tr><td><strong>Training</strong></td><td>Count word co-occurrences → frequency table</td><td>Baum-Welch (EM algorithm)</td></tr>
+      <tr><td><strong>Example</strong></td><td>"the" → ["king", "queen", "forest", ...]</td><td>P(NOUN | "forest") × P(NOUN→VERB)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 7. ML MODELS ===== -->
+<section id="ml-models">
+  <h2><span class="icon">🤖</span> 7. ML Models &amp; Training Summary</h2>
+
+  <table>
+    <tr>
+      <th>Model</th>
+      <th>Algorithm</th>
+      <th>Library</th>
+      <th>Input Features</th>
+      <th>Output</th>
+      <th>Used By</th>
+    </tr>
+    <tr>
+      <td><strong>Text Classifier</strong></td>
+      <td>Random Forest</td>
+      <td>scikit-learn</td>
+      <td>Linguistic features + TF-IDF</td>
+      <td>NARRATIVE / INFORMATIONAL</td>
+      <td>Mode Router</td>
+    </tr>
+    <tr>
+      <td><strong>Keyphrase Scorer</strong></td>
+      <td>Gradient Boosting</td>
+      <td>scikit-learn</td>
+      <td>8 features (position, freq, NER, etc.)</td>
+      <td>Score 0.0 → 1.0 per candidate</td>
+      <td>Mind Map</td>
+    </tr>
+    <tr>
+      <td><strong>Topic Modeler</strong></td>
+      <td>LDA + KMeans</td>
+      <td>scikit-learn</td>
+      <td>Bag-of-Words / TF-IDF matrix</td>
+      <td>K topic clusters with word distributions</td>
+      <td>Mind Map</td>
+    </tr>
+    <tr>
+      <td><strong>Relation Extractor</strong></td>
+      <td>MLP (Neural Network)</td>
+      <td>scikit-learn</td>
+      <td>TF-IDF of sentence context</td>
+      <td>IS_A, PART_OF, CAUSES, etc.</td>
+      <td>Mind Map</td>
+    </tr>
+    <tr>
+      <td><strong>Markov Chain</strong></td>
+      <td>N-gram (bigram + trigram)</td>
+      <td>Pure Python (dict)</td>
+      <td>Fairy tales corpus (3.7M words)</td>
+      <td>Generated story sentences</td>
+      <td>Story Mode</td>
+    </tr>
+  </table>
+
+  <div class="highlight">
+    <strong>Note on SpaCy:</strong> SpaCy's <span class="inline-code">en_core_web_sm</span> model is used throughout for tokenization, NER, POS tagging, and dependency parsing. It's a pre-trained statistical model (not an ML model we train ourselves) — think of it as a <em>foundational NLP toolkit</em> that our custom ML models build on top of.
+  </div>
+</section>
+
+<!-- ===== 8. FRONTEND ===== -->
+<section id="frontend">
+  <h2><span class="icon">🎨</span> 8. Frontend &amp; Visualization</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>React + TypeScript</h3>
+      <ul>
+        <li><strong>App.tsx:</strong> Main application with 3 pages — Landing, Workspace (input), Results</li>
+        <li><strong>Workspace Page:</strong> Text input area with mode selector (Auto / Mind Map / Comic / Story)</li>
+        <li><strong>Story Mode UI:</strong> Keyword chip input (type + Enter to add tags, × to remove)</li>
+        <li><strong>Results Page:</strong> Displays mind map, comic strip, or story with panels</li>
+        <li>Styled with <strong>Tailwind CSS</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>D3.js Mind Map</h3>
+      <ul>
+        <li>Renders NetworkX graph as interactive SVG</li>
+        <li>Radial tree layout with cubic Bézier curves</li>
+        <li>Dynamic pill sizing based on label length</li>
+        <li>Color gradient: purple (center) → blue (L1) → teal (L2)</li>
+        <li>Supports Devanagari &amp; Tamil scripts via Noto Sans</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Comic Strip Display</h3>
+      <ul>
+        <li>Responsive 2-3 column grid layout</li>
+        <li>Each panel: AI-generated image + caption overlay</li>
+        <li>Progressive loading: SVG placeholders → real images</li>
+        <li>Panel numbering with speech-bubble captions</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Story Display</h3>
+      <ul>
+        <li>Title + NLP info banner (technique, corpus, keyword roles)</li>
+        <li>Full story text in serif font</li>
+        <li>6 story panels in responsive grid</li>
+        <li>Keywords highlighted in story text</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 9. MULTILINGUAL ===== -->
+<section id="multilingual">
+  <h2><span class="icon">🌐</span> 9. Multilingual Support</h2>
+  
+  <table>
+    <tr><th>Language</th><th>Script</th><th>SpaCy Model</th><th>Features</th></tr>
+    <tr><td>English</td><td>Latin</td><td><span class="inline-code">en_core_web_sm</span></td><td>Full NLP: NER, POS, Deps, Noun Chunks</td></tr>
+    <tr><td>Hindi</td><td>Devanagari (U+0900–U+097F)</td><td><span class="inline-code">xx_ent_wiki_sm</span></td><td>NER + tokenization; custom stopwords; default categories in Hindi</td></tr>
+    <tr><td>Tamil</td><td>Tamil (U+0B80–U+0BFF)</td><td><span class="inline-code">xx_ent_wiki_sm</span></td><td>NER + tokenization; custom stopwords; default categories in Tamil</td></tr>
+  </table>
+
+  <h4>Language Detection:</h4>
+  <ol>
+    <li>Primary: <span class="inline-code">langdetect</span> library (statistical n-gram detection)</li>
+    <li>Fallback: Unicode script analysis — counts Devanagari / Tamil / Latin characters and picks the dominant script</li>
+  </ol>
+</section>
+
+<!-- ===== 10. API ===== -->
+<section id="api">
+  <h2><span class="icon">📡</span> 10. API Reference</h2>
+
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Purpose</th><th>Input</th><th>Output</th></tr>
+    <tr><td>GET</td><td>/api/health</td><td>Health check</td><td>—</td><td><span class="inline-code">{"status": "healthy"}</span></td></tr>
+    <tr><td>POST</td><td>/api/process</td><td>Main NLP pipeline</td><td><span class="inline-code">{"text": "...", "mode": "auto"}</span></td><td>Comic data or Mind Map data</td></tr>
+    <tr><td>POST</td><td>/api/generate-story</td><td>Story from keywords</td><td><span class="inline-code">{"keywords": ["forest","princess"]}</span></td><td>Story + panels</td></tr>
+    <tr><td>POST</td><td>/api/generate-image</td><td>Generate 1 comic panel image</td><td><span class="inline-code">{"prompt": "..."}</span></td><td>Base64 image data</td></tr>
+    <tr><td>GET</td><td>/api/model-status</td><td>Check ML model status</td><td>—</td><td>Training status for each model</td></tr>
+    <tr><td>POST</td><td>/api/train</td><td>Trigger model training</td><td><span class="inline-code">{"training_model": "keyphrase"}</span></td><td>Training metrics</td></tr>
+  </table>
+</section>
+
+<!-- ===== 11. TECH STACK ===== -->
+<section id="techstack">
+  <h2><span class="icon">🛠️</span> 11. Technology Stack</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Backend</h3>
+      <ul>
+        <li><strong>Python 3.10+</strong></li>
+        <li><strong>FastAPI</strong> — async web framework</li>
+        <li><strong>SpaCy</strong> — NLP (tokenization, NER, POS, deps)</li>
+        <li><strong>scikit-learn</strong> — ML models (RF, GB, LDA, MLP, KMeans)</li>
+        <li><strong>NetworkX</strong> — graph data structure for mind maps</li>
+        <li><strong>NLTK</strong> — additional NLP utilities</li>
+        <li><strong>Gensim</strong> — topic modeling</li>
+        <li><strong>NumPy</strong> — numerical computing</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Frontend</h3>
+      <ul>
+        <li><strong>React 18</strong> — UI framework</li>
+        <li><strong>TypeScript</strong> — type-safe JavaScript</li>
+        <li><strong>D3.js</strong> — mind map SVG rendering</li>
+        <li><strong>Tailwind CSS</strong> — utility-first styling</li>
+        <li><strong>Vite</strong> — build tool &amp; dev server</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Image Generation</h3>
+      <ul>
+        <li><strong>Pollinations.ai</strong> — FLUX model (free, no API key)</li>
+        <li><strong>HuggingFace</strong> — SDXL / FLUX.1-schnell (fallback)</li>
+        <li><strong>SVG Placeholders</strong> — gradient + text (instant)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Data &amp; Training</h3>
+      <ul>
+        <li><strong>Fairy Tales Corpus</strong> — 3.7M words for Markov Chain</li>
+        <li><strong>BBC News Dataset</strong> — text classification training</li>
+        <li><strong>Academic Datasets</strong> — Inspec, SemEval, etc. for keyphrase training</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 12. HOW TO RUN ===== -->
+<section id="howtorun">
+  <h2><span class="icon">🚀</span> 12. How to Run</h2>
+
+  <div class="card">
+    <h3>Backend (Python)</h3>
+    <pre><code># 1. Navigate to backend
+cd backend
+
+# 2. Create virtual environment
+python -m venv virt
+
+# 3. Activate it
+# Windows:
+.\virt\Scripts\activate
+# macOS/Linux:
+source virt/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Download SpaCy models
+python -m spacy download en_core_web_sm
+python -m spacy download xx_ent_wiki_sm
+
+# 6. Start the server
+python main.py
+# → Server runs at http://localhost:8001</code></pre>
+  </div>
+
+  <div class="card">
+    <h3>Frontend (React)</h3>
+    <pre><code># 1. Install Node.js dependencies (from project root)
+npm install
+
+# 2. Start development server
+npm run dev
+# → Frontend runs at http://localhost:5173</code></pre>
+  </div>
+</section>
+
+</div><!-- end container -->
+
+<footer>
+  <p>VisualVerse — NLP Project Documentation</p>
+  <p style="margin-top:6px">Built with Python, FastAPI, React, SpaCy, scikit-learn, D3.js</p>
+</footer>
+
+</body>
+</html>

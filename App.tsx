@@ -645,20 +645,36 @@ const ResultsPage = ({ status, result, panels, onReset }: {
                 </div>
               </div>
 
-              {/* Story Panels */}
+              {/* Story Panels with Images */}
               {sd.panels.length > 0 && (
                 <div>
                   <h3 className="text-lg font-black dark:text-white uppercase tracking-tight mb-4">Story Panels</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className={`grid grid-cols-1 ${
+                    sd.panels.length === 1 ? '' 
+                    : sd.panels.length === 2 ? 'lg:grid-cols-2' 
+                    : sd.panels.length <= 4 ? 'md:grid-cols-2' 
+                    : 'md:grid-cols-2 lg:grid-cols-3'
+                  } gap-8`}>
                     {sd.panels.map((panel, idx) => (
-                      <div key={panel.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-lg">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2"></div>
-                        <div className="p-6">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center font-black text-sm">{idx + 1}</div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Panel {idx + 1}</span>
+                      <div key={panel.id} className="group relative rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
+                        <div className="aspect-square bg-zinc-100 dark:bg-zinc-900 relative">
+                          {panel.image_url ? (
+                            <img src={panel.image_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={`Story Panel ${idx + 1}`} />
+                          ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <Loader2 className="animate-spin text-indigo-500 mb-2" />
+                              <span className="text-xs text-zinc-500 font-mono">Illustrating scene...</span>
+                            </div>
+                          )}
+                          <div className="absolute top-6 left-6 w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black text-2xl border border-white/20 shadow-2xl">
+                            {idx + 1}
                           </div>
-                          <p className="text-base leading-relaxed dark:text-zinc-300 font-serif italic text-zinc-700">"{panel.caption}"</p>
+                        </div>
+                        <div className="p-8">
+                          <div className="relative">
+                            <div className="absolute -left-4 top-0 w-1 h-full bg-amber-500/20 rounded-full"></div>
+                            <p className="text-lg leading-relaxed dark:text-zinc-300 font-serif italic text-zinc-700">"{panel.caption}"</p>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -837,6 +853,26 @@ export default function App() {
         language: 'en',
         storyData,
       });
+      setStatus('generating');
+
+      // Generate images for story panels progressively (same as comic panels)
+      storyData.panels.forEach(async (panel, idx) => {
+        try {
+          const url = await generatePanelImage(panel.prompt);
+          setResult(prev => {
+            if (!prev || !prev.storyData) return prev;
+            const updatedPanels = [...prev.storyData.panels];
+            updatedPanels[idx] = { ...updatedPanels[idx], image_url: url };
+            return {
+              ...prev,
+              storyData: { ...prev.storyData, panels: updatedPanels },
+            };
+          });
+        } catch (e) {
+          console.error(`Image gen failed for story panel ${panel.id}:`, e);
+        }
+      });
+
       setStatus('complete');
     } catch (e: any) {
       console.error(e);

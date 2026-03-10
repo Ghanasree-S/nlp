@@ -1,0 +1,39 @@
+{
+  "fold_results": [
+    {
+      "fold": 1,
+      "coherence_score": 0.6021634807559358,
+      "train_perplexity": Infinity,
+      "test_perplexity": Infinity
+    },
+    {
+      "fold": 2,
+      "coherence_score": 0.6021634807559358,
+      "train_perplexity": Infinity,
+      "test_perplexity": Infinity
+    },
+    {
+      "fold": 3,
+      "coherence_score": 0.602163480755936,
+      "train_perplexity": Infinity,
+      "test_perplexity": Infinity
+    },
+    {
+      "fold": 4,
+      "coherence_score": 0.6021634807559357,
+      "train_perplexity": Infinity,
+      "test_perplexity": Infinity
+    },
+    {
+      "fold": 5,
+      "coherence_score": 0.6021634807559358,
+      "train_perplexity": Infinity,
+      "test_perplexity": Infinity
+    }
+  ],
+  "avg_metrics": {
+    "coherence_score": 0.6021634807559358,
+    "train_perplexity": Infinity,
+    "test_perplexity": Infinity
+  }
+}

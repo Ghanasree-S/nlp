@@ -201,21 +201,28 @@ async def process_text(input_data: TextInput):
 
 @app.post("/api/generate-image")
 async def generate_image(request: ImageRequest):
-    """Generate a comic panel image using Pollinations.ai (FLUX model, free)"""
+    """Generate a comic panel image: Stable Diffusion first, Gemini Imagen fallback"""
     try:
-        # Try Pollinations.ai first (free, no key needed)
-        image_url = comic_generator._call_pollinations(request.prompt)
-        return {"image_url": image_url}
-    except Exception as poll_err:
-        logger.warning(f"Pollinations.ai failed: {poll_err}")
-        # Fallback to HF if token available
+        # Try Stable Diffusion (HF) first
         if comic_generator.hf_token:
             try:
                 image_url = comic_generator._call_dreamshaper(request.prompt)
                 return {"image_url": image_url}
-            except Exception as hf_err:
-                logger.warning(f"HF also failed: {hf_err}")
-        # Last resort: return SVG placeholder instead of 500 error
+            except Exception as sd_err:
+                logger.warning(f"Stable Diffusion failed: {sd_err}")
+        
+        # Fallback to Gemini Imagen
+        if comic_generator.gemini_key:
+            try:
+                image_url = comic_generator._call_gemini_imagen(request.prompt)
+                return {"image_url": image_url}
+            except Exception as gemini_err:
+                logger.warning(f"Gemini Imagen failed: {gemini_err}")
+        
+        # Last resort: SVG placeholder
+        placeholder = comic_generator._get_placeholder_image(1, request.prompt[:60])
+        return {"image_url": placeholder}
+    except Exception as e:
         placeholder = comic_generator._get_placeholder_image(1, request.prompt[:60])
         return {"image_url": placeholder}
 

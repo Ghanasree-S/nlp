@@ -13,33 +13,33 @@ from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
-# Pollinations.ai - Free image generation using FLUX model (no API key needed)
-POLLINATIONS_URL = "https://image.pollinations.ai/prompt"
-
-# Fallback: HuggingFace models (requires credits)
+# Primary: HuggingFace Stable Diffusion models
 HF_MODELS = [
     "stabilityai/stable-diffusion-xl-base-1.0",
     "black-forest-labs/FLUX.1-schnell",
 ]
 HF_ROUTER_URL = "https://router.huggingface.co/hf-inference/models"
 
+# Fallback: Google Gemini Imagen
+GEMINI_IMAGEN_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
+
 
 class ComicGenerator:
     """
-    Comic Strip Generator using FLUX model via Pollinations.ai (free)
+    Comic Strip Generator using Stable Diffusion + Gemini Imagen
     
     Pipeline:
     1. Segment story into scenes/beats
     2. Extract characters and settings for each scene
     3. Generate optimized image prompts
-    4. Generate images via Pollinations.ai (FLUX model, free, no key needed)
+    4. Generate images: Stable Diffusion (HF) → Gemini Imagen fallback
     5. Combine panels into comic strip layout
     """
     
     def __init__(self):
         """Initialize the comic generator"""
         self.hf_token = os.getenv("HF_API_TOKEN", "")
-        # Pollinations.ai is always available (no API key needed)
+        self.gemini_key = os.getenv("GEMINI_API_KEY", "")
         self.use_placeholder = False
         
     async def generate(self, preprocessed: Dict[str, Any]) -> Dict[str, Any]:
@@ -245,49 +245,61 @@ class ComicGenerator:
     async def _generate_panel_image(self, panel: Dict[str, Any]) -> str:
         """
         Generate image for a panel.
-        Priority: Pollinations.ai (free FLUX) → HF API (if credits) → SVG placeholder
+        Priority: Stable Diffusion (HF) → Gemini Imagen → SVG placeholder
         """
-        # Try Pollinations.ai first (free, uses FLUX model)
-        try:
-            return self._call_pollinations(panel["prompt"])
-        except Exception as e:
-            logger.warning(f"Pollinations.ai failed for panel {panel['panel_number']}: {e}")
-        
-        # Fallback to HF if token available
+        # Try Stable Diffusion first
         if self.hf_token:
             try:
                 return self._call_dreamshaper(panel["prompt"])
             except Exception as e:
-                logger.warning(f"HF API also failed for panel {panel['panel_number']}: {e}")
+                logger.warning(f"Stable Diffusion failed for panel {panel['panel_number']}: {e}")
+        
+        # Fallback to Gemini Imagen
+        if self.gemini_key:
+            try:
+                return self._call_gemini_imagen(panel["prompt"])
+            except Exception as e:
+                logger.warning(f"Gemini Imagen failed for panel {panel['panel_number']}: {e}")
         
         # Last resort: SVG placeholder
         return self._get_placeholder_image(panel["panel_number"], panel.get("caption", ""))
     
-    def _call_pollinations(self, prompt: str) -> str:
+    def _call_gemini_imagen(self, prompt: str) -> str:
         """
-        Call Pollinations.ai free API (uses FLUX model).
-        No API key required. Returns base64-encoded PNG data URI.
+        Call Google Gemini API for image generation.
+        Uses Gemini 2.0 Flash with image output. Returns base64-encoded data URI.
         """
-        # URL-encode the prompt
-        encoded_prompt = urllib.parse.quote(prompt)
-        url = f"{POLLINATIONS_URL}/{encoded_prompt}?width=512&height=512&model=flux&nologo=true&seed={hash(prompt) % 100000}"
+        url = f"{GEMINI_IMAGEN_URL}?key={self.gemini_key}"
         
-        logger.info(f"Calling Pollinations.ai FLUX model...")
-        response = requests.get(url, timeout=120)
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": f"Generate a high-quality illustration for this scene. Do not include any text in the image. Scene: {prompt[:500]}"
+                }]
+            }],
+            "generationConfig": {
+                "responseModalities": ["TEXT", "IMAGE"]
+            }
+        }
         
-        if response.status_code == 200 and len(response.content) > 1000:
-            img_bytes = response.content
-            b64 = base64.b64encode(img_bytes).decode("utf-8")
-            # Detect content type from response headers
-            content_type = response.headers.get("content-type", "image/jpeg")
-            if "png" in content_type:
-                mime = "image/png"
-            else:
-                mime = "image/jpeg"
-            logger.info(f"Image generated successfully via Pollinations.ai (FLUX model)")
-            return f"data:{mime};base64,{b64}"
+        logger.info("Calling Gemini Imagen API...")
+        response = requests.post(url, json=payload, timeout=120)
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Extract image from Gemini response
+            candidates = data.get("candidates", [])
+            for candidate in candidates:
+                parts = candidate.get("content", {}).get("parts", [])
+                for part in parts:
+                    if "inlineData" in part:
+                        mime_type = part["inlineData"].get("mimeType", "image/png")
+                        b64_data = part["inlineData"]["data"]
+                        logger.info("Image generated successfully via Gemini Imagen")
+                        return f"data:{mime_type};base64,{b64_data}"
+            raise RuntimeError("Gemini response did not contain an image")
         else:
-            raise RuntimeError(f"Pollinations.ai returned {response.status_code}, content length: {len(response.content)}")
+            raise RuntimeError(f"Gemini API returned {response.status_code}: {response.text[:200]}")
     
     def _call_dreamshaper(self, prompt: str) -> str:
         """
