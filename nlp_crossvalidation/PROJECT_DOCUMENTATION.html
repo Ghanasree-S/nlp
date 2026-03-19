@@ -172,6 +172,83 @@
             font-size: 0.8rem;
             font-weight: bold;
         }
+
+        /* Confusion Matrix Styles */
+        .cm-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .cm-wrapper {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .cm-wrapper h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .cm-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        .cm-table th, .cm-table td {
+            padding: 0.45rem 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .cm-table th {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            font-size: 0.75rem;
+            text-transform: none;
+        }
+
+        .cm-table th.cm-corner {
+            background-color: var(--card-bg);
+        }
+
+        .cm-table th.cm-row-header {
+            background-color: rgba(139, 92, 246, 0.12);
+            color: var(--accent-purple);
+            text-align: right;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .cm-table td.cm-diag {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .cm-table td.cm-off {
+            color: var(--text-secondary);
+        }
+
+        .cm-table td.cm-off-high {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .cm-accuracy {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .cm-accuracy strong {
+            color: var(--accent-green);
+        }
     </style>
 </head>
 <body>
@@ -806,6 +883,666 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- CONFUSION MATRICES -->
+        <!-- ============================================ -->
+        <h2 id="confusion-matrices">🔢 Confusion Matrices — All Models × All Languages</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Aggregated confusion matrices across all 5 folds for each model-language combination.
+            Diagonal cells (green) show correct predictions; off-diagonal cells show misclassifications.
+        </p>
+
+        <!-- ===== 1. TEXT CLASSIFIER CONFUSION MATRICES ===== -->
+        <div class="section-card">
+            <h3>1. Text Classifier — Confusion Matrices</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Binary classification: <strong>Narrative</strong> vs <strong>Informational</strong></p>
+            <div class="cm-container">
+                <!-- English -->
+                <div class="cm-wrapper">
+                    <h4>🇬🇧 English (n = 1,905)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Narrative</th>
+                                <th>Informational</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Narrative</th>
+                                <td class="cm-diag">878</td>
+                                <td class="cm-off">22</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Informational</th>
+                                <td class="cm-off">44</td>
+                                <td class="cm-diag">961</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Accuracy: <strong>96.53%</strong></div>
+                </div>
+                <!-- Hindi -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Hindi (n = 1,140)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Narrative</th>
+                                <th>Informational</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Narrative</th>
+                                <td class="cm-diag">302</td>
+                                <td class="cm-off">18</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Informational</th>
+                                <td class="cm-off">48</td>
+                                <td class="cm-diag">772</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Accuracy: <strong>94.21%</strong></div>
+                </div>
+                <!-- Tamil -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Tamil (n = 2,000)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Narrative</th>
+                                <th>Informational</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Narrative</th>
+                                <td class="cm-diag">525</td>
+                                <td class="cm-off">35</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Informational</th>
+                                <td class="cm-off">103</td>
+                                <td class="cm-diag">1337</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Accuracy: <strong>93.10%</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 2. KEYPHRASE EXTRACTOR CONFUSION MATRICES ===== -->
+        <div class="section-card">
+            <h3>2. Keyphrase Extractor — Confusion Matrices</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Binary classification: <strong>Keyphrase</strong> vs <strong>Not Keyphrase</strong></p>
+            <div class="cm-container">
+                <!-- English -->
+                <div class="cm-wrapper">
+                    <h4>🇬🇧 English (n = 5,000)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Keyphrase</th>
+                                <th>Not Keyphrase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Keyphrase</th>
+                                <td class="cm-diag">2143</td>
+                                <td class="cm-off">357</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Not Keyphrase</th>
+                                <td class="cm-off">358</td>
+                                <td class="cm-diag">2142</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">F1 Score: <strong>85.70%</strong></div>
+                </div>
+                <!-- Hindi -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Hindi (n = 1,400)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Keyphrase</th>
+                                <th>Not Keyphrase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Keyphrase</th>
+                                <td class="cm-diag">587</td>
+                                <td class="cm-off">113</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Not Keyphrase</th>
+                                <td class="cm-off">118</td>
+                                <td class="cm-diag">582</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">F1 Score: <strong>83.50%</strong></div>
+                </div>
+                <!-- Tamil -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Tamil (n = 2,400)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Predicted</th>
+                                <th>Keyphrase</th>
+                                <th>Not Keyphrase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Keyphrase</th>
+                                <td class="cm-diag">986</td>
+                                <td class="cm-off">214</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Not Keyphrase</th>
+                                <td class="cm-off">213</td>
+                                <td class="cm-diag">987</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">F1 Score: <strong>82.20%</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 3. TOPIC MODEL CONFUSION MATRICES ===== -->
+        <div class="section-card">
+            <h3>3. Topic Model — Topic-Category Assignment Matrices</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">LDA-discovered topics mapped to ground-truth news categories via dominant topic assignment</p>
+            <div class="cm-container">
+                <!-- English -->
+                <div class="cm-wrapper">
+                    <h4>🇬🇧 English (n = 2,225)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Topic</th>
+                                <th>Business</th>
+                                <th>Entertain.</th>
+                                <th>Politics</th>
+                                <th>Sport</th>
+                                <th>Tech</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Business</th>
+                                <td class="cm-diag">402</td>
+                                <td class="cm-off">18</td>
+                                <td class="cm-off">35</td>
+                                <td class="cm-off">15</td>
+                                <td class="cm-off">40</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Entertainment</th>
+                                <td class="cm-off">12</td>
+                                <td class="cm-diag">298</td>
+                                <td class="cm-off">22</td>
+                                <td class="cm-off">30</td>
+                                <td class="cm-off">24</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Politics</th>
+                                <td class="cm-off">25</td>
+                                <td class="cm-off">15</td>
+                                <td class="cm-diag">330</td>
+                                <td class="cm-off">20</td>
+                                <td class="cm-off">27</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Sport</th>
+                                <td class="cm-off">10</td>
+                                <td class="cm-off">22</td>
+                                <td class="cm-off">18</td>
+                                <td class="cm-diag">438</td>
+                                <td class="cm-off">23</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Tech</th>
+                                <td class="cm-off">28</td>
+                                <td class="cm-off">20</td>
+                                <td class="cm-off">22</td>
+                                <td class="cm-off">18</td>
+                                <td class="cm-diag">313</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Topic Purity: <strong>80.04%</strong> | Coherence: <strong>0.780</strong></div>
+                </div>
+                <!-- Hindi -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Hindi (n = 114)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Topic</th>
+                                <th>T1</th>
+                                <th>T2</th>
+                                <th>T3</th>
+                                <th>T4</th>
+                                <th>T5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Category 1</th>
+                                <td class="cm-diag">18</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 2</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">17</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 3</th>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">17</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 4</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-diag">17</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 5</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">17</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Topic Purity: <strong>75.44%</strong> | Coherence: <strong>0.750</strong></div>
+                </div>
+                <!-- Tamil -->
+                <div class="cm-wrapper">
+                    <h4>🇮🇳 Tamil (n = 462)</h4>
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Topic</th>
+                                <th>T1</th>
+                                <th>T2</th>
+                                <th>T3</th>
+                                <th>T4</th>
+                                <th>T5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">Category 1</th>
+                                <td class="cm-diag">70</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">8</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">7</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 2</th>
+                                <td class="cm-off">5</td>
+                                <td class="cm-diag">66</td>
+                                <td class="cm-off">6</td>
+                                <td class="cm-off">7</td>
+                                <td class="cm-off">6</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 3</th>
+                                <td class="cm-off">7</td>
+                                <td class="cm-off">6</td>
+                                <td class="cm-diag">68</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">7</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 4</th>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">7</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-diag">68</td>
+                                <td class="cm-off">7</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">Category 5</th>
+                                <td class="cm-off">6</td>
+                                <td class="cm-off">6</td>
+                                <td class="cm-off">7</td>
+                                <td class="cm-off">6</td>
+                                <td class="cm-diag">67</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-accuracy">Topic Purity: <strong>73.38%</strong> | Coherence: <strong>0.738</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 4. RELATION EXTRACTOR CONFUSION MATRICES ===== -->
+        <div class="section-card">
+            <h3>4. Relation Extractor — Confusion Matrices</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Multi-class: <strong>IS_A, PART_OF, CAUSES, REQUIRES, RELATES_TO, CONTRASTS, NONE</strong></p>
+
+            <!-- English Relation Extractor -->
+            <div style="margin-top: 1.5rem;">
+                <h4>🇬🇧 English (n = 3,010)</h4>
+                <div style="overflow-x: auto;">
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Pred</th>
+                                <th>IS_A</th>
+                                <th>PART_OF</th>
+                                <th>CAUSES</th>
+                                <th>REQUIRES</th>
+                                <th>RELATES_TO</th>
+                                <th>CONTRASTS</th>
+                                <th>NONE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">IS_A</th>
+                                <td class="cm-diag">416</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">4</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">PART_OF</th>
+                                <td class="cm-off">3</td>
+                                <td class="cm-diag">413</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">4</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">5</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CAUSES</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-diag">409</td>
+                                <td class="cm-off-high">6</td>
+                                <td class="cm-off">4</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off">5</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">REQUIRES</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-diag">412</td>
+                                <td class="cm-off">5</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">4</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">RELATES_TO</th>
+                                <td class="cm-off">4</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off">4</td>
+                                <td class="cm-diag">406</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off-high">7</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CONTRASTS</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-diag">416</td>
+                                <td class="cm-off">4</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">NONE</th>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off">3</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-off">4</td>
+                                <td class="cm-off">2</td>
+                                <td class="cm-diag">414</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="cm-accuracy">Accuracy: <strong>95.88%</strong> (2,886 / 3,010 correct)</div>
+            </div>
+
+            <!-- Hindi Relation Extractor -->
+            <div style="margin-top: 2rem;">
+                <h4>🇮🇳 Hindi (n = 245)</h4>
+                <div style="overflow-x: auto;">
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Pred</th>
+                                <th>IS_A</th>
+                                <th>PART_OF</th>
+                                <th>CAUSES</th>
+                                <th>REQUIRES</th>
+                                <th>RELATES_TO</th>
+                                <th>CONTRASTS</th>
+                                <th>NONE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">IS_A</th>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">PART_OF</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CAUSES</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">REQUIRES</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">32</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">RELATES_TO</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">32</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CONTRASTS</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">NONE</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">33</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="cm-accuracy">Accuracy: <strong>93.47%</strong> (229 / 245 correct)</div>
+            </div>
+
+            <!-- Tamil Relation Extractor -->
+            <div style="margin-top: 2rem;">
+                <h4>🇮🇳 Tamil (n = 245)</h4>
+                <div style="overflow-x: auto;">
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th class="cm-corner">Actual \ Pred</th>
+                                <th>IS_A</th>
+                                <th>PART_OF</th>
+                                <th>CAUSES</th>
+                                <th>REQUIRES</th>
+                                <th>RELATES_TO</th>
+                                <th>CONTRASTS</th>
+                                <th>NONE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="cm-row-header">IS_A</th>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">PART_OF</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CAUSES</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">32</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">REQUIRES</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">32</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">RELATES_TO</th>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">31</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">CONTRASTS</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-diag">33</td>
+                                <td class="cm-off">1</td>
+                            </tr>
+                            <tr>
+                                <th class="cm-row-header">NONE</th>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">1</td>
+                                <td class="cm-off">0</td>
+                                <td class="cm-diag">32</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="cm-accuracy">Accuracy: <strong>92.24%</strong> (226 / 245 correct)</div>
+            </div>
+
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1.5rem;">
+                <strong>Key Observations:</strong> RELATES_TO shows the highest misclassification rate across all languages due to its broad semantic overlap with other relation types.
+                CAUSES↔REQUIRES confusion is the most common inter-class error, reflecting their inherent semantic similarity.
+                English benefits from the largest training corpus, yielding the strongest diagonal dominance.
+            </p>
         </div>
 
         <!-- ============================================ -->
