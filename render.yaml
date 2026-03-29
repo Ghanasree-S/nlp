@@ -1,24 +1,38 @@
 # Render Blueprint - Deploy both frontend and backend
 services:
-  # Backend API (Python FastAPI)
+  # ─────────────────────────────────────────
+  # Backend API (Python FastAPI via Docker)
+  # ─────────────────────────────────────────
   - type: web
     name: visualverse-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/health
     envVars:
       - key: GEMINI_API_KEY
-        sync: false  # You'll set this in Render dashboard
+        sync: false          # Set this manually in Render dashboard
+      - key: HF_TOKEN
+        sync: false          # Hugging Face token for Stable Diffusion (optional)
       - key: PORT
         value: 8000
-    healthCheckPath: /
-    
-  # Frontend (Static Site)
+
+  # ─────────────────────────────────────────
+  # Frontend (Vite / React Static Site)
+  # ─────────────────────────────────────────
   - type: web
     name: visualverse-frontend
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: false
     envVars:
       - key: VITE_API_URL
-        sync: false  # Set to your backend URL after deploy
+        sync: false          # Set to your backend Render URL after deploy
+      - key: GEMINI_API_KEY
+        sync: false          # Gemini API key for frontend direct calls
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
